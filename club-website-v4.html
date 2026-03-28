@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>美团大学 · 社团智能匹配平台</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #f5f2ec;
+  --warm-white: #faf8f4;
+  --dark: #1c1a17;
+  --mid: #6b6560;
+  --light: #a09890;
+  --border: #ddd9d0;
+  --accent: #3e6f8a;
+  --serif: 'Noto Serif SC', serif;
+  --sans: 'Noto Sans SC', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--sans); background: var(--warm-white); color: var(--dark); font-weight: 300; line-height: 1.8; }
+
+/* ── PAGES ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── NAV ── */
+nav {
+  background: var(--dark); padding: 0 4rem; height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.nav-logo { font-family: var(--serif); font-weight: 400; font-size: 15px; color: var(--cream); letter-spacing: 2px; cursor: pointer; white-space: nowrap; }
+.nav-links { display: flex; gap: 2rem; list-style: none; align-items: center; }
+.nav-links a { font-size: 12px; color: rgba(245,242,236,0.55); text-decoration: none; letter-spacing: 1.5px; text-transform: uppercase; transition: color 0.2s; cursor: pointer; white-space: nowrap; }
+.nav-links a:hover, .nav-links a.active-link { color: var(--cream); }
+.nav-login-btn {
+  font-size: 12px; color: var(--cream); border: 1px solid rgba(245,242,236,0.3);
+  padding: 6px 16px; letter-spacing: 1px; cursor: pointer; background: transparent;
+  font-family: var(--sans); transition: all 0.2s; white-space: nowrap;
+}
+.nav-login-btn:hover { background: rgba(245,242,236,0.08); }
+.nav-user { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.nav-avatar {
+  width: 30px; height: 30px; border-radius: 50%; background: rgba(245,242,236,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: var(--cream); letter-spacing: 0.5px;
+}
+.nav-username { font-size: 12px; color: rgba(245,242,236,0.7); letter-spacing: 1px; }
+
+/* ── HOME HERO ── */
+.hero {
+  display: grid; grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--border);
+}
+.hero-left {
+  background: var(--dark); padding: 3rem 4rem;
+  display: flex; flex-direction: column; justify-content: space-between;
+  cursor: pointer; position: relative; overflow: hidden; transition: background 0.3s;
+  min-height: 520px;
+}
+.hero-left:hover { background: #242220; }
+.hl-deco { position:absolute; bottom:-60px; right:-60px; width:260px; height:260px; border-radius:50%; border:1px solid rgba(245,242,236,0.06); pointer-events:none; }
+.hl-deco2 { position:absolute; bottom:-20px; right:-20px; width:160px; height:160px; border-radius:50%; border:1px solid rgba(245,242,236,0.08); pointer-events:none; }
+.recruit-eyebrow { font-size:11px; letter-spacing:2.5px; color:rgba(245,242,236,0.35); text-transform:uppercase; }
+.recruit-main { flex:1; display:flex; flex-direction:column; justify-content:center; padding:2rem 0; }
+.recruit-tag { font-size:11px; letter-spacing:2px; color:rgba(245,242,236,0.35); text-transform:uppercase; margin-bottom:1.5rem; }
+.recruit-headline { font-family:var(--serif); font-size:clamp(24px,3vw,36px); font-weight:400; color:var(--cream); line-height:1.5; letter-spacing:0.5px; margin-bottom:1.5rem; max-width: 400px; }
+.recruit-body { font-size:13px; color:rgba(245,242,236,0.4); line-height:1.9; max-width:380px; margin-bottom:2.5rem; }
+.recruit-cta { display:inline-flex; align-items:center; gap:12px; font-size:13px; color:var(--cream); letter-spacing:1px; border-bottom:1px solid rgba(245,242,236,0.3); padding-bottom:4px; transition:all 0.3s; }
+.hero-left:hover .recruit-cta { gap:18px; border-color:rgba(245,242,236,0.6); }
+.recruit-footer { font-size:11px; color:rgba(245,242,236,0.2); letter-spacing:1px; }
+
+.hero-right { display:flex; flex-direction:column; border-left:1px solid var(--border); }
+
+/* Slideshow */
+.slideshow { position:relative; overflow:hidden; background:var(--cream); border-bottom:1px solid var(--border); }
+.slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.9s ease; }
+.slide.active { opacity:1; }
+.slide-bg { font-size:90px; opacity:0.12; }
+.slide-caption { position:absolute; bottom:1.25rem; left:1.5rem; font-size:13px; color:var(--mid); letter-spacing:0.5px; font-family:var(--serif); }
+.slide-dots { position:absolute; bottom:1rem; right:1.5rem; display:flex; gap:7px; }
+.dot { width:5px; height:5px; border-radius:50%; background:var(--border); cursor:pointer; transition:background 0.2s; }
+.dot.active { background:var(--mid); }
+
+/* Notices */
+.notices { flex:1; padding:1.75rem 2rem; overflow-y:auto; }
+.notices-header { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--light); margin-bottom:1rem; padding-bottom:0.75rem; border-bottom:1px solid var(--border); }
+.notice-item { display:grid; grid-template-columns:44px 1fr; gap:0.75rem; padding:0.7rem 0; border-bottom:1px solid var(--border); cursor:pointer; transition:opacity 0.2s; }
+.notice-item:hover { opacity:0.65; }
+.notice-date { font-size:11px; color:var(--light); padding-top:2px; letter-spacing:0.3px; }
+.notice-text { font-size:13px; color:var(--mid); line-height:1.6; }
+
+/* Ticker */
+.dept-ticker { background:var(--cream); border-bottom:1px solid var(--border); padding:1rem 4rem; display:flex; align-items:center; gap:2rem; overflow:hidden; }
+.ticker-label { font-size:10px; letter-spacing:2px; color:var(--light); text-transform:uppercase; white-space:nowrap; flex-shrink:0; }
+.ticker-track { overflow:hidden; flex:1; }
+.ticker-inner { display:flex; gap:3rem; animation:tick 28s linear infinite; white-space:nowrap; }
+.ticker-item { font-family:var(--serif); font-size:13px; color:var(--mid); letter-spacing:0.5px; }
+@keyframes tick { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+/* Search bar */
+.search-bar-wrap { padding: 2rem 4rem 0; max-width: 1400px; margin: 0 auto; }
+.search-bar { display: flex; gap: 10px; }
+.search-input {
+  flex: 1; padding: 12px 16px; border: 1px solid var(--border); background: var(--cream);
+  font-size: 14px; color: var(--dark); font-family: var(--sans); outline: none; transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--mid); }
+.search-input::placeholder { color: var(--light); }
+.search-clear {
+  padding: 8px 16px; border: 1px solid var(--border); background: transparent;
+  font-size: 12px; color: var(--light); cursor: pointer; font-family: var(--sans);
+  letter-spacing: 1px; transition: all 0.2s; display: none;
+}
+.search-clear.visible { display: block; }
+.search-clear:hover { border-color: var(--mid); color: var(--mid); }
+
+/* Clubs section */
+.clubs-section { padding: 2rem 4rem 4rem; max-width:1400px; margin:0 auto; }
+.section-header { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:2.5rem; padding-bottom:1rem; border-bottom:1px solid var(--border); }
+.section-title { font-family:var(--serif); font-size:22px; font-weight:400; letter-spacing:1px; }
+.section-sub { font-size:12px; color:var(--light); letter-spacing:1px; }
+.cat-filter { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:2rem; }
+.cat-btn { padding:6px 16px; border:1px solid var(--border); background:transparent; font-size:12px; color:var(--light); cursor:pointer; letter-spacing:1px; text-transform:uppercase; font-family:var(--sans); transition:all 0.2s; }
+.cat-btn:hover { border-color:var(--mid); color:var(--mid); }
+.cat-btn.active { border-color:var(--dark); color:var(--dark); background:var(--cream); }
+.clubs-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.5rem; }
+.club-card { aspect-ratio:3/2; background:var(--cream); position:relative; overflow:hidden; cursor:pointer; }
+.club-card.hidden { display:none; }
+.club-card-bg { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:56px; opacity:0.13; transition:transform 0.5s ease; }
+.club-card:hover .club-card-bg { transform:scale(1.06); }
+.club-card-overlay { position:absolute; inset:0; background:linear-gradient(to top,rgba(28,26,23,0.72) 0%,transparent 55%); opacity:0; transition:opacity 0.35s; }
+.club-card:hover .club-card-overlay { opacity:1; }
+.club-card-info { position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; justify-content:space-between; padding:1rem; }
+.club-card-type { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:rgba(245,242,236,0.85); background:rgba(28,26,23,0.35); display:inline-block; padding:3px 9px; align-self:flex-start; opacity:0; transform:translateY(-4px); transition:all 0.25s; }
+.club-card:hover .club-card-type { opacity:1; transform:translateY(0); }
+.club-card-bottom { opacity:0; transform:translateY(5px); transition:all 0.25s 0.04s; }
+.club-card:hover .club-card-bottom { opacity:1; transform:translateY(0); }
+.club-card-name { font-family:var(--serif); font-size:14px; font-weight:400; color:var(--cream); margin-bottom:3px; }
+.club-card-freq { font-size:11px; color:rgba(245,242,236,0.55); }
+.club-card-static { position:absolute; bottom:0; left:0; right:0; padding:0.6rem 0.8rem; background:rgba(245,242,236,0.85); z-index:1; opacity:1; transition:opacity 0.25s; }
+.club-card:hover .club-card-static { opacity:0; }
+.club-static-name { font-family:var(--serif); font-size:12px; color:var(--dark); }
+.no-results { padding: 3rem; text-align: center; color: var(--light); font-size: 14px; grid-column: 1 / -1; }
+
+/* ── CLUB DETAIL PAGE ── */
+.detail-page { background:var(--warm-white); }
+.detail-back { padding:1.5rem 4rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; cursor:pointer; transition:opacity 0.2s; }
+.detail-back:hover { opacity:0.65; }
+.detail-back-arrow { font-size:14px; color:var(--mid); }
+.detail-back-text { font-size:12px; color:var(--mid); letter-spacing:1px; text-transform:uppercase; }
+.detail-hero { padding:4rem 4rem 3rem; display:grid; grid-template-columns:1fr 1fr; gap:4rem; border-bottom:1px solid var(--border); }
+.detail-emoji-wrap { width:80px; height:80px; background:var(--cream); display:flex; align-items:center; justify-content:center; font-size:36px; margin-bottom:1.5rem; }
+.detail-cat { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--light); margin-bottom:0.75rem; }
+.detail-name { font-family:var(--serif); font-size:32px; font-weight:400; letter-spacing:0.5px; margin-bottom:1rem; line-height:1.3; }
+.detail-meta-row { display:flex; gap:2rem; margin-bottom:1.5rem; flex-wrap: wrap; }
+.detail-meta-item { display:flex; flex-direction:column; gap:3px; }
+.detail-meta-label { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--light); }
+.detail-meta-val { font-size:14px; color:var(--dark); }
+.detail-desc { font-size:14px; color:var(--mid); line-height:2; }
+.detail-right { display:flex; flex-direction:column; justify-content:space-between; }
+.detail-cta-box { background:var(--dark); padding:2rem; }
+.detail-cta-label { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:rgba(245,242,236,0.35); margin-bottom:1rem; }
+.detail-cta-deadline { font-family:var(--serif); font-size:15px; color:var(--cream); margin-bottom:0.5rem; }
+.detail-cta-sub { font-size:12px; color:rgba(245,242,236,0.4); margin-bottom:1.5rem; line-height:1.8; }
+.detail-apply-btn { width:100%; padding:13px; background:var(--cream); color:var(--dark); border:none; font-family:var(--serif); font-size:14px; letter-spacing:1px; cursor:pointer; transition:opacity 0.2s; margin-bottom:10px; }
+.detail-apply-btn:hover { opacity:0.85; }
+.detail-apply-btn.applied { background:rgba(245,242,236,0.3); color:rgba(245,242,236,0.6); cursor:default; }
+.detail-fav-btn { width:100%; padding:11px; border:1px solid rgba(245,242,236,0.2); background:transparent; font-size:13px; color:rgba(245,242,236,0.6); cursor:pointer; font-family:var(--sans); letter-spacing:1px; transition:all 0.2s; }
+.detail-fav-btn:hover { border-color:rgba(245,242,236,0.5); color:var(--cream); }
+.detail-fav-btn.faved { border-color:rgba(245,242,236,0.5); color:var(--cream); }
+
+/* Detail sections */
+.detail-section { padding:3rem 4rem; border-bottom:1px solid var(--border); }
+.detail-section-title { font-family:var(--serif); font-size:18px; font-weight:400; letter-spacing:1px; margin-bottom:2rem; padding-bottom:1rem; border-bottom:1px solid var(--border); }
+.activities-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; }
+.activity-card { }
+.activity-img { aspect-ratio:4/3; background:var(--cream); display:flex; align-items:center; justify-content:center; font-size:40px; opacity:0.25; margin-bottom:0.75rem; }
+.activity-date { font-size:11px; letter-spacing:1px; color:var(--light); margin-bottom:4px; }
+.activity-title { font-family:var(--serif); font-size:13px; color:var(--dark); margin-bottom:6px; }
+.activity-desc { font-size:12px; color:var(--mid); line-height:1.7; }
+.recruit-info-grid { display:grid; grid-template-columns:1fr 1fr; gap:2rem; }
+.ri-label { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--light); margin-bottom:0.75rem; padding-bottom:0.5rem; border-bottom:1px solid var(--border); }
+.ri-content { font-size:13px; color:var(--mid); line-height:1.9; }
+.ri-tag { display:inline-block; font-size:11px; padding:4px 12px; border:1px solid var(--border); color:var(--light); margin:3px 3px 3px 0; letter-spacing:0.5px; }
+.testimonials { display:flex; flex-direction:column; gap:1.5rem; }
+.testimonial { display:grid; grid-template-columns:40px 1fr; gap:1rem; padding:1.5rem; background:var(--cream); }
+.test-avatar { width:40px; height:40px; background:var(--border); display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--mid); }
+.test-name { font-size:13px; color:var(--dark); margin-bottom:2px; }
+.test-meta { font-size:11px; color:var(--light); letter-spacing:0.5px; margin-bottom:0.75rem; }
+.test-text { font-size:13px; color:var(--mid); line-height:1.8; font-style:italic; }
+
+/* ── EVENTS PAGE ── */
+.events-page { background: var(--warm-white); }
+.events-hero { background: var(--dark); padding: 3rem 4rem; border-bottom: 1px solid rgba(245,242,236,0.1); }
+.events-hero-title { font-family: var(--serif); font-size: 28px; font-weight: 400; color: var(--cream); margin-bottom: 8px; }
+.events-hero-sub { font-size: 13px; color: rgba(245,242,236,0.4); letter-spacing: 1px; }
+.events-body { padding: 3rem 4rem; max-width: 1200px; }
+.events-section { margin-bottom: 3rem; }
+.events-section-title { font-family: var(--serif); font-size: 18px; font-weight: 400; letter-spacing: 1px; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
+.timeline-list { display: flex; flex-direction: column; gap: 1px; }
+.timeline-item { display: grid; grid-template-columns: 100px 1fr auto; gap: 1.5rem; padding: 1.25rem; background: var(--cream); align-items: center; transition: opacity 0.2s; cursor: pointer; }
+.timeline-item:hover { opacity: 0.75; }
+.timeline-date { font-size: 12px; color: var(--light); letter-spacing: 0.5px; }
+.timeline-info { }
+.timeline-club { font-family: var(--serif); font-size: 14px; color: var(--dark); margin-bottom: 2px; }
+.timeline-desc { font-size: 12px; color: var(--mid); }
+.timeline-status { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; padding: 4px 10px; }
+.timeline-status.upcoming { color: #3e6f8a; background: #d8eef5; }
+.timeline-status.ongoing { color: #3e7a55; background: #d8f0e3; }
+.timeline-status.ended { color: var(--light); background: var(--cream); border: 1px solid var(--border); }
+
+/* Deadline calendar */
+.deadline-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; }
+.deadline-card { padding: 1.25rem; background: var(--cream); cursor: pointer; transition: opacity 0.2s; }
+.deadline-card:hover { opacity: 0.75; }
+.deadline-card-date { font-family: var(--serif); font-size: 16px; color: var(--dark); margin-bottom: 4px; }
+.deadline-card-name { font-size: 13px; color: var(--mid); margin-bottom: 2px; }
+.deadline-card-cat { font-size: 11px; color: var(--light); letter-spacing: 0.5px; }
+.deadline-card-days { font-size: 11px; color: var(--accent); margin-top: 6px; letter-spacing: 0.5px; }
+
+/* ── COMPARE MODAL ── */
+.compare-overlay { display:none; position:fixed; inset:0; background:rgba(28,26,23,0.65); z-index:250; align-items:center; justify-content:center; padding:2rem; }
+.compare-overlay.open { display:flex; }
+.compare-box { background:var(--warm-white); width:100%; max-width:800px; max-height:88vh; overflow-y:auto; animation:modalIn 0.3s ease; }
+.compare-header { padding:1.5rem 2rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.compare-title { font-family:var(--serif); font-size:17px; font-weight:400; }
+.compare-body { padding:2rem; }
+.compare-table { width:100%; border-collapse:collapse; }
+.compare-table th { text-align:left; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--light); padding:10px 12px; border-bottom:1px solid var(--border); font-weight:300; }
+.compare-table td { font-size:13px; color:var(--mid); padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+.compare-table td:first-child { font-size:11px; color:var(--light); letter-spacing:1px; text-transform:uppercase; white-space:nowrap; }
+
+/* ── PROFILE PAGE ── */
+.profile-page { background:var(--warm-white); }
+.profile-hero { background:var(--dark); padding:3rem 4rem; border-bottom:1px solid rgba(245,242,236,0.1); }
+.profile-hero-inner { display:flex; align-items:center; gap:2rem; }
+.profile-big-avatar { width:64px; height:64px; border-radius:50%; background:rgba(245,242,236,0.12); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:22px; color:var(--cream); }
+.profile-name { font-family:var(--serif); font-size:22px; font-weight:400; color:var(--cream); margin-bottom:4px; }
+.profile-sub { font-size:12px; color:rgba(245,242,236,0.4); letter-spacing:1px; }
+.profile-body { padding:3rem 4rem; max-width:1000px; }
+.profile-section { margin-bottom:3rem; }
+.profile-section-title { font-family:var(--serif); font-size:16px; font-weight:400; letter-spacing:1px; margin-bottom:1.25rem; padding-bottom:0.75rem; border-bottom:1px solid var(--border); color:var(--dark); }
+.info-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; }
+.info-block { background:var(--cream); padding:1.25rem; }
+.info-label { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--light); margin-bottom:6px; }
+.info-value { font-family:var(--serif); font-size:16px; color:var(--dark); }
+.fav-list { display:flex; flex-direction:column; gap:1px; }
+.fav-item { display:flex; align-items:center; justify-content:space-between; padding:1rem 1.25rem; background:var(--cream); transition:opacity 0.2s; cursor:pointer; }
+.fav-item:hover { opacity:0.75; }
+.fav-left { display:flex; align-items:center; gap:12px; }
+.fav-emoji { font-size:18px; }
+.fav-name { font-family:var(--serif); font-size:14px; color:var(--dark); }
+.fav-cat { font-size:11px; color:var(--light); letter-spacing:0.5px; margin-top:2px; }
+.fav-remove { font-size:11px; color:var(--light); letter-spacing:1px; text-transform:uppercase; cursor:pointer; transition:color 0.2s; }
+.fav-remove:hover { color:var(--dark); }
+.apps-list { display:flex; flex-direction:column; gap:1px; }
+.app-item { display:grid; grid-template-columns:1fr auto; align-items:center; gap:1rem; padding:1rem 1.25rem; background:var(--cream); }
+.app-name { font-family:var(--serif); font-size:14px; color:var(--dark); }
+.app-date { font-size:11px; color:var(--light); margin-top:2px; letter-spacing:0.3px; }
+.app-status { font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:4px 12px; }
+.app-status.pending { color:#8a6f3e; background:#f5edd8; }
+.app-status.review { color:#3e6f8a; background:#d8eef5; }
+.app-status.passed { color:#3e7a55; background:#d8f0e3; }
+.empty-state { padding:2rem; text-align:center; color:var(--light); font-size:13px; letter-spacing:0.5px; background:var(--cream); }
+
+/* ── LOGIN MODAL ── */
+.login-overlay { display:none; position:fixed; inset:0; background:rgba(28,26,23,0.65); z-index:300; align-items:center; justify-content:center; }
+.login-overlay.open { display:flex; }
+.login-box { background:var(--warm-white); width:100%; max-width:400px; padding:2.5rem; animation:modalIn 0.3s ease; }
+.login-title { font-family:var(--serif); font-size:20px; font-weight:400; letter-spacing:0.5px; margin-bottom:0.5rem; }
+.login-sub { font-size:12px; color:var(--light); margin-bottom:2rem; }
+.login-field { margin-bottom:1rem; }
+.login-label { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--light); display:block; margin-bottom:6px; }
+.login-input { width:100%; padding:12px; border:1px solid var(--border); background:var(--warm-white); font-size:14px; color:var(--dark); font-family:var(--sans); outline:none; transition:border-color 0.2s; }
+.login-input:focus { border-color:var(--mid); }
+.login-submit { width:100%; padding:13px; background:var(--dark); color:var(--cream); border:none; font-family:var(--serif); font-size:14px; letter-spacing:1px; cursor:pointer; margin-top:0.5rem; transition:opacity 0.2s; }
+.login-submit:hover { opacity:0.85; }
+.login-cancel { width:100%; padding:11px; border:1px solid var(--border); background:transparent; font-size:12px; color:var(--light); cursor:pointer; margin-top:8px; font-family:var(--sans); letter-spacing:1px; }
+.login-err { font-size:12px; color:#8a3e3e; margin-top:8px; display:none; }
+
+/* Demo accounts hint */
+.login-demo { font-size:11px; color:var(--light); margin-top:1.25rem; padding-top:1rem; border-top:1px solid var(--border); line-height:1.8; }
+.login-demo b { font-weight:400; color:var(--mid); }
+
+/* ── ASSESSMENT MODAL ── */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(28,26,23,0.65); z-index:200; align-items:center; justify-content:center; padding:2rem; }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--warm-white); width:100%; max-width:520px; max-height:90vh; overflow-y:auto; animation:modalIn 0.3s ease; }
+@keyframes modalIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+.modal-header { padding:1.75rem 2rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; justify-content:space-between; }
+.modal-title { font-family:var(--serif); font-size:17px; font-weight:400; letter-spacing:0.5px; }
+.modal-close { background:none; border:none; font-size:22px; color:var(--light); cursor:pointer; line-height:1; transition:color 0.2s; margin-top:-3px; }
+.modal-close:hover { color:var(--dark); }
+.modal-body { padding:2rem; }
+.m-progress { display:flex; gap:4px; margin-bottom:2rem; }
+.m-ps { flex:1; height:2px; background:var(--border); transition:background 0.4s; }
+.m-ps.active { background:var(--dark); }
+.m-ps.done { background:var(--mid); }
+.m-label { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--light); margin-bottom:1.5rem; }
+.m-q { font-family:var(--serif); font-size:17px; font-weight:400; color:var(--dark); margin-bottom:6px; line-height:1.6; }
+.m-hint { font-size:12px; color:var(--light); margin-bottom:1.5rem; }
+.m-opts { display:flex; flex-direction:column; gap:9px; margin-bottom:1.75rem; }
+.m-opt { padding:13px 16px; border:1px solid var(--border); background:var(--warm-white); cursor:pointer; display:flex; align-items:center; gap:14px; transition:all 0.2s; font-family:var(--sans); }
+.m-opt:hover { border-color:var(--mid); background:var(--cream); }
+.m-opt.sel { border-color:var(--dark); background:var(--cream); }
+.m-radio { width:16px; height:16px; border:1px solid var(--border); border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+.m-check { width:16px; height:16px; border:1px solid var(--border); border-radius:3px; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all 0.2s; font-size:10px; color:var(--cream); }
+.m-opt.sel .m-radio { background:var(--dark); border-color:var(--dark); }
+.m-opt.sel .m-radio::after { content:''; width:5px; height:5px; border-radius:50%; background:var(--cream); }
+.m-opt.sel .m-check { background:var(--dark); border-color:var(--dark); }
+.m-opt.sel .m-check::after { content:'\2713'; }
+.m-opt-text { font-size:14px; color:var(--dark); font-weight:300; }
+.m-opt-sub { font-size:12px; color:var(--light); margin-top:1px; }
+.m-tags { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:1.75rem; }
+.m-tag { padding:7px 16px; border:1px solid var(--border); font-size:13px; color:var(--mid); cursor:pointer; transition:all 0.2s; font-family:var(--sans); font-weight:300; }
+.m-tag:hover { border-color:var(--mid); color:var(--dark); }
+.m-tag.sel { border-color:var(--dark); color:var(--dark); background:var(--cream); }
+.m-tag.disabled-tag { opacity:0.35; cursor:not-allowed; }
+.m-btn { width:100%; padding:13px; background:var(--dark); color:var(--cream); border:none; font-family:var(--serif); font-size:14px; font-weight:400; letter-spacing:1px; cursor:pointer; transition:opacity 0.2s; }
+.m-btn:hover { opacity:0.85; }
+.m-btn:disabled { background:var(--border); color:var(--light); cursor:not-allowed; opacity:1; }
+.m-matching { text-align:center; padding:3rem 1rem; }
+.m-ring { width:60px; height:60px; border:1px solid var(--border); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1.5rem; font-size:22px; animation:pulse-ring 1.8s ease infinite; }
+@keyframes pulse-ring { 0%,100%{box-shadow:0 0 0 0 rgba(28,26,23,0.08)} 50%{box-shadow:0 0 0 10px rgba(28,26,23,0)} }
+.m-mt { font-family:var(--serif); font-size:17px; font-weight:400; color:var(--dark); margin-bottom:8px; }
+.m-ms { font-size:12px; color:var(--light); line-height:1.9; }
+.m-dots { margin-top:1.5rem; display:flex; justify-content:center; gap:8px; }
+.m-dots span { width:5px; height:5px; border-radius:50%; background:var(--mid); animation:fd 1.4s infinite; }
+.m-dots span:nth-child(2){animation-delay:0.2s} .m-dots span:nth-child(3){animation-delay:0.4s}
+@keyframes fd{0%,100%{opacity:0.2}50%{opacity:1}}
+.m-rh { margin-bottom:1.5rem; }
+.m-rt { font-family:var(--serif); font-size:17px; font-weight:400; color:var(--dark); margin-bottom:4px; }
+.m-rs { font-size:12px; color:var(--light); letter-spacing:0.5px; }
+.m-rc { border:1px solid var(--border); padding:1.25rem; margin-bottom:1rem; background:var(--warm-white); }
+.m-rc.top { border-color:var(--dark); }
+.m-rch { display:flex; align-items:center; gap:12px; margin-bottom:1rem; }
+.m-rci { width:38px; height:38px; background:var(--cream); display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+.m-rcn { font-family:var(--serif); font-size:14px; font-weight:400; color:var(--dark); }
+.m-rcm { font-size:11px; color:var(--light); letter-spacing:0.3px; margin-top:2px; }
+.m-rcb { margin-left:auto; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--mid); border:1px solid var(--border); padding:3px 9px; white-space:nowrap; }
+.m-mrow { display:flex; align-items:center; gap:10px; margin-bottom:1rem; }
+.m-ml { font-size:11px; color:var(--light); letter-spacing:0.5px; white-space:nowrap; }
+.m-trk { flex:1; height:2px; background:var(--border); position:relative; }
+.m-fill { position:absolute; top:0; left:0; height:2px; background:var(--dark); width:0; transition:width 1.2s cubic-bezier(0.4,0,0.2,1); }
+.m-pct { font-size:12px; color:var(--mid); font-family:var(--serif); min-width:30px; text-align:right; }
+.m-reason { font-size:12px; color:var(--mid); line-height:1.8; margin-bottom:1rem; padding-left:12px; border-left:2px solid var(--border); }
+.m-ctags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:1rem; }
+.m-ctag { font-size:10px; padding:3px 9px; border:1px solid var(--border); color:var(--light); letter-spacing:0.5px; }
+.m-apply { width:100%; padding:10px; border:1px solid var(--dark); background:transparent; font-family:var(--serif); font-size:13px; color:var(--dark); cursor:pointer; letter-spacing:0.5px; transition:all 0.2s; }
+.m-apply:hover { background:var(--dark); color:var(--cream); }
+.m-apply.applied { background:var(--dark); color:var(--cream); cursor:default; }
+.m-view-detail { width:100%; padding:8px; border:1px solid var(--border); background:transparent; font-size:11px; color:var(--light); cursor:pointer; margin-top:6px; font-family:var(--sans); letter-spacing:1px; transition:all 0.2s; }
+.m-view-detail:hover { border-color:var(--mid); color:var(--mid); }
+.m-show-more { width:100%; padding:12px; border:1px solid var(--border); background:transparent; font-size:12px; color:var(--mid); cursor:pointer; margin-bottom:1rem; font-family:var(--sans); letter-spacing:1px; transition:all 0.2s; }
+.m-show-more:hover { border-color:var(--mid); }
+.m-again { width:100%; padding:11px; border:1px solid var(--border); background:transparent; font-size:11px; color:var(--light); cursor:pointer; margin-top:8px; font-family:var(--sans); letter-spacing:1.5px; text-transform:uppercase; transition:all 0.2s; }
+.m-again:hover { border-color:var(--mid); color:var(--mid); }
+.m-share { width:100%; padding:11px; border:1px solid var(--border); background:transparent; font-size:11px; color:var(--light); cursor:pointer; margin-top:6px; font-family:var(--sans); letter-spacing:1px; transition:all 0.2s; text-align:center; }
+.m-share:hover { border-color:var(--mid); color:var(--mid); }
+.m-share-toast { position:fixed; bottom:2rem; left:50%; transform:translateX(-50%); background:var(--dark); color:var(--cream); padding:10px 24px; font-size:13px; letter-spacing:0.5px; z-index:999; animation:toastIn 0.3s ease; }
+@keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+
+/* FOOTER */
+footer { background:var(--cream); border-top:1px solid var(--border); padding:2rem 4rem; display:flex; align-items:center; justify-content:space-between; flex-wrap: wrap; gap: 1rem; }
+.footer-brand { font-family:var(--serif); font-size:13px; color:var(--mid); letter-spacing:1px; }
+.footer-links { display:flex; align-items:center; gap:2rem; }
+.footer-sep { width:1px; height:12px; background:var(--border); }
+.footer-link { font-size:12px; color:var(--light); text-decoration:none; letter-spacing:1px; transition:color 0.2s; cursor:pointer; }
+.footer-link:hover { color:var(--dark); }
+.footer-copy { font-size:11px; color:var(--light); letter-spacing:0.5px; }
+
+/* Help modal */
+.help-overlay { display:none; position:fixed; inset:0; background:rgba(28,26,23,0.65); z-index:350; align-items:center; justify-content:center; }
+.help-overlay.open { display:flex; }
+.help-box { background:var(--warm-white); width:100%; max-width:480px; padding:2.5rem; animation:modalIn 0.3s ease; }
+.help-title { font-family:var(--serif); font-size:18px; font-weight:400; margin-bottom:1.5rem; }
+.help-section { margin-bottom:1.5rem; }
+.help-section-title { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--light); margin-bottom:0.5rem; }
+.help-text { font-size:13px; color:var(--mid); line-height:1.8; }
+.help-close { width:100%; padding:11px; border:1px solid var(--border); background:transparent; font-size:12px; color:var(--light); cursor:pointer; font-family:var(--sans); letter-spacing:1px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .clubs-grid { grid-template-columns: repeat(3, 1fr); }
+  .detail-hero { grid-template-columns: 1fr; gap: 2rem; }
+  .activities-grid { grid-template-columns: repeat(2, 1fr); }
+  .recruit-info-grid { grid-template-columns: 1fr; }
+  .deadline-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  nav { padding: 0 1.5rem; gap: 1rem; }
+  .nav-links { gap: 1rem; }
+  .hero { grid-template-columns: 1fr; }
+  .hero-left { min-height: 400px; padding: 2rem 1.5rem; }
+  .hero-right { border-left: none; border-top: 1px solid var(--border); }
+  .dept-ticker { padding: 1rem 1.5rem; }
+  .search-bar-wrap { padding: 1.5rem 1.5rem 0; }
+  .clubs-section { padding: 1.5rem; }
+  .clubs-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .section-header { flex-direction: column; gap: 0.5rem; }
+  .detail-hero { padding: 2rem 1.5rem; }
+  .detail-section { padding: 2rem 1.5rem; }
+  .detail-back { padding: 1rem 1.5rem; }
+  .activities-grid { grid-template-columns: 1fr; }
+  .info-grid { grid-template-columns: 1fr; }
+  .profile-hero { padding: 2rem 1.5rem; }
+  .profile-body { padding: 2rem 1.5rem; }
+  .events-hero { padding: 2rem 1.5rem; }
+  .events-body { padding: 2rem 1.5rem; }
+  .deadline-grid { grid-template-columns: 1fr; }
+  .timeline-item { grid-template-columns: 80px 1fr auto; gap: 1rem; }
+  footer { padding: 1.5rem; flex-direction: column; text-align: center; }
+  .compare-box { max-width: 95%; }
+}
+@media (max-width: 480px) {
+  .nav-links { gap: 0.5rem; }
+  .nav-links a { font-size: 10px; letter-spacing: 1px; }
+  .clubs-grid { grid-template-columns: 1fr; }
+  .hero-left { min-height: 320px; }
+  .modal { max-width: 95%; }
+  .timeline-item { grid-template-columns: 1fr; gap: 0.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="goHome()">美团大学 · 社团官网</div>
+  <ul class="nav-links">
+    <li><a onclick="goHome()" id="navHome">社团</a></li>
+    <li><a onclick="openModal()">招新测评</a></li>
+    <li><a onclick="goEvents()" id="navEvents">活动</a></li>
+    <li id="navAuthArea"></li>
+  </ul>
+</nav>
+
+<!-- HOME PAGE -->
+<div id="homePage" class="page active">
+  <section class="hero" id="heroSection">
+    <div class="hero-left" onclick="openModal()">
+      <div class="hl-deco"></div><div class="hl-deco2"></div>
+      <div class="recruit-eyebrow">Meituan University · Student Clubs</div>
+      <div class="recruit-main">
+        <div class="recruit-tag">2025 秋季招新</div>
+        <div class="recruit-headline">不知道加入哪个社团？让 AI 为你匹配最适合的选择</div>
+        <div class="recruit-body">回答 7 个简单问题，基于你的性格、兴趣与时间，从 37 个社团中智能推荐最适合你的选择。</div>
+        <div class="recruit-cta"><span>开始智能测评 · 约 1 分钟</span><span>&rarr;</span></div>
+      </div>
+      <div class="recruit-footer">美团大学学生社团联合会 · 2025</div>
+    </div>
+    <div class="hero-right">
+      <div class="slideshow" id="slideshow">
+        <div class="slide active"><div class="slide-bg">🎭</div><div class="slide-caption">文艺部 · 2024年秋季汇演</div></div>
+        <div class="slide"><div class="slide-bg">⚽</div><div class="slide-caption">体育部 · 校际联赛决赛</div></div>
+        <div class="slide"><div class="slide-bg">💻</div><div class="slide-caption">技术部 · ACM 备战集训</div></div>
+        <div class="slide"><div class="slide-bg">🌱</div><div class="slide-caption">公益部 · 郊区支教活动</div></div>
+        <div class="slide-dots" id="dots"></div>
+      </div>
+      <div class="notices">
+        <div class="notices-header">最新通知</div>
+        <div class="notice-item"><div class="notice-date">09.05</div><div class="notice-text">招新说明会将于9月8日晚7点在逸夫楼报告厅举行，欢迎全体新生参加</div></div>
+        <div class="notice-item"><div class="notice-date">09.01</div><div class="notice-text">2025秋季招新正式开始，各社团报名通道已全面开放</div></div>
+        <div class="notice-item"><div class="notice-date">08.28</div><div class="notice-text">社团嘉年华将于9月15日在校园广场盛大举行，届时可与各社团面对面交流</div></div>
+        <div class="notice-item"><div class="notice-date">08.20</div><div class="notice-text">ACM算法竞赛队荣获全国二等奖，诚邀有编程热情的新成员加入</div></div>
+        <div class="notice-item"><div class="notice-date">08.15</div><div class="notice-text">公益支教队2024年度总结报告正式发布，志愿时长认定已完成</div></div>
+        <div class="notice-item"><div class="notice-date">08.10</div><div class="notice-text">辩论队荣获市级高校辩论赛冠军，队员风采视频已上传官网</div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="dept-ticker">
+    <div class="ticker-label">各部门</div>
+    <div class="ticker-track"><div class="ticker-inner" id="ticker"></div></div>
+  </div>
+
+  <!-- Search -->
+  <div class="search-bar-wrap">
+    <div class="search-bar">
+      <input class="search-input" id="searchInput" placeholder="搜索社团名称、标签或类别..." oninput="handleSearch()" />
+      <button class="search-clear" id="searchClear" onclick="clearSearch()">清除</button>
+    </div>
+  </div>
+
+  <section class="clubs-section">
+    <div class="section-header">
+      <div class="section-title">社团一览</div>
+      <div class="section-sub" id="clubCount"></div>
+    </div>
+    <div class="cat-filter" id="catFilter"></div>
+    <div class="clubs-grid" id="clubsGrid"></div>
+  </section>
+
+  <footer>
+    <div class="footer-brand">美团大学</div>
+    <div class="footer-links">
+      <span class="footer-link" onclick="openHelp()">需要帮助</span>
+      <div class="footer-sep"></div>
+      <span class="footer-link" onclick="copyEmail()">联系邮箱</span>
+      <div class="footer-sep"></div>
+      <span class="footer-link" onclick="window.open('https://www.meituan.com','_blank')">跳转校院官网</span>
+    </div>
+    <div class="footer-copy">&copy; 2025 美团大学学生社团联合会</div>
+  </footer>
+</div>
+
+<!-- CLUB DETAIL PAGE -->
+<div id="detailPage" class="page detail-page">
+  <div class="detail-back" onclick="goHome()">
+    <span class="detail-back-arrow">&larr;</span>
+    <span class="detail-back-text">返回社团一览</span>
+  </div>
+  <div id="detailContent"></div>
+  <footer>
+    <div class="footer-brand">美团大学</div>
+    <div class="footer-links">
+      <span class="footer-link" onclick="openHelp()">需要帮助</span>
+      <div class="footer-sep"></div>
+      <span class="footer-link" onclick="copyEmail()">联系邮箱</span>
+    </div>
+    <div class="footer-copy">&copy; 2025 美团大学学生社团联合会</div>
+  </footer>
+</div>
+
+<!-- EVENTS PAGE -->
+<div id="eventsPage" class="page events-page">
+  <div class="events-hero">
+    <div class="events-hero-title">活动日历 & 招新截止日期</div>
+    <div class="events-hero-sub">一站式掌握所有社团动态，合理规划你的社团之旅</div>
+  </div>
+  <div class="events-body">
+    <div class="events-section">
+      <div class="events-section-title">招新截止日期一览</div>
+      <div class="deadline-grid" id="deadlineGrid"></div>
+    </div>
+    <div class="events-section">
+      <div class="events-section-title">近期活动</div>
+      <div class="timeline-list" id="timelineList"></div>
+    </div>
+  </div>
+  <footer>
+    <div class="footer-brand">美团大学</div>
+    <div class="footer-links">
+      <span class="footer-link" onclick="openHelp()">需要帮助</span>
+      <div class="footer-sep"></div>
+      <span class="footer-link" onclick="copyEmail()">联系邮箱</span>
+    </div>
+    <div class="footer-copy">&copy; 2025 美团大学学生社团联合会</div>
+  </footer>
+</div>
+
+<!-- PROFILE PAGE -->
+<div id="profilePage" class="page profile-page">
+  <div id="profileContent"></div>
+  <footer>
+    <div class="footer-brand">美团大学</div>
+    <div class="footer-links">
+      <span class="footer-link" onclick="openHelp()">需要帮助</span>
+      <div class="footer-sep"></div>
+      <span class="footer-link" onclick="copyEmail()">联系邮箱</span>
+    </div>
+    <div class="footer-copy">&copy; 2025 美团大学学生社团联合会</div>
+  </footer>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="login-overlay" id="loginOverlay" onclick="loginOverlayClick(event)">
+  <div class="login-box">
+    <div class="login-title">登录</div>
+    <div class="login-sub">使用学号登录以查看个人信息及申请进度</div>
+    <div class="login-field"><label class="login-label">学号</label><input class="login-input" id="loginId" placeholder="2025XXXXXXXX" /></div>
+    <div class="login-field"><label class="login-label">密码</label><input class="login-input" type="password" id="loginPwd" placeholder="••••••••" /></div>
+    <div class="login-err" id="loginErr"></div>
+    <button class="login-submit" onclick="doLogin()">登录</button>
+    <button class="login-cancel" onclick="closeLogin()">取消</button>
+    <div class="login-demo">
+      演示账号（任选一个）：<br>
+      <b>张三</b> · 学号 2025030012345 · 密码 123456<br>
+      <b>李思</b> · 学号 2025030067890 · 密码 123456<br>
+      <b>王芳</b> · 学号 2025020011111 · 密码 123456
+    </div>
+  </div>
+</div>
+
+<!-- ASSESSMENT MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">社团智能匹配</div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- COMPARE MODAL -->
+<div class="compare-overlay" id="compareOverlay" onclick="compareOverlayClick(event)">
+  <div class="compare-box">
+    <div class="compare-header">
+      <div class="compare-title">社团对比</div>
+      <button class="modal-close" onclick="closeCompare()">&times;</button>
+    </div>
+    <div class="compare-body" id="compareBody"></div>
+  </div>
+</div>
+
+<!-- HELP MODAL -->
+<div class="help-overlay" id="helpOverlay" onclick="helpOverlayClick(event)">
+  <div class="help-box">
+    <div class="help-title">需要帮助？</div>
+    <div class="help-section">
+      <div class="help-section-title">如何使用</div>
+      <div class="help-text">点击"招新测评"回答 7 道简单问题，系统会基于你的兴趣、性格和时间为你智能推荐最适合的社团。你也可以直接浏览社团列表或使用搜索功能。</div>
+    </div>
+    <div class="help-section">
+      <div class="help-section-title">联系我们</div>
+      <div class="help-text">邮箱：clubs@meituan-u.edu.cn<br>地址：美团大学学生活动中心 201 室<br>咨询时间：工作日 9:00-17:00</div>
+    </div>
+    <div class="help-section">
+      <div class="help-section-title">常见问题</div>
+      <div class="help-text">Q：我可以同时加入多个社团吗？<br>A：可以，但建议根据时间精力合理选择 1-3 个。<br><br>Q：测评结果准确吗？<br>A：测评基于多维度向量匹配算法，结果仅供参考，最终选择权在你。</div>
+    </div>
+    <button class="help-close" onclick="closeHelp()">关闭</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const clubs = [
+  {id:1,  name:'ACM算法竞赛队',   cat:'学术科技', emoji:'💻', tags:['编程','竞赛','算法'],   freq:'每周2次', members:38, traits:['理性'], interests:['技术','竞赛'], time:'5h+', difficulty:'hard', pressure:'high',
+   desc:'成立于2012年，是学校历史最悠久的技术类社团之一。专注于算法竞赛培训，历年在ACM-ICPC、蓝桥杯、CCPC等国内外赛事中屡获佳绩。社团氛围严肃而不失活跃，既有高强度的刷题训练，也有定期的技术分享与代码评审。',
+   activities:[{date:'2024.11',title:'蓝桥杯集训营',desc:'为期两周的强化训练，覆盖动态规划、图论、数论等核心模块。'},{date:'2024.09',title:'新生算法入门营',desc:'面向零基础新生的四周系列课程，从C++基础到简单搜索。'},{date:'2024.05',title:'ICPC区域赛银奖',desc:'代表学校参加ACM-ICPC亚洲区域赛，荣获银奖。'}],
+   recruit:{reqs:['熟悉至少一门编程语言','有基础逻辑思维与数学能力','每周能保证至少5小时投入'],deadline:'2025年9月20日',flow:'在线笔试 → 技术面试 → 综合面试 → 录取通知'},
+   testimonials:[{name:'李同学',meta:'2022级 · 计算机科学',text:'加入ACM队让我的代码能力突飞猛进，更重要的是认识了一群真正热爱编程的朋友。'},{name:'王同学',meta:'2021级 · 软件工程',text:'这里的氛围是我见过最纯粹的，大家聚在一起就是因为热爱算法。'}]},
+  {id:2,  name:'数据科学社',       cat:'学术科技', emoji:'📊', tags:['数据','AI','项目'],     freq:'每周1次', members:52, traits:['理性'], interests:['技术','商业'], time:'3-5h', difficulty:'medium', pressure:'medium',
+   desc:'聚焦数据分析、机器学习与人工智能的实践型社团。定期举办数据竞赛、项目工坊与企业参访，与多家科技公司建立了实习推荐通道。',
+   activities:[{date:'2024.10',title:'Kaggle组队竞赛',desc:'组织10支队伍参加Kaggle房价预测竞赛，最高排名进入全球前15%。'},{date:'2024.08',title:'暑期数据实践营',desc:'与某互联网公司合作开展为期三周的真实数据项目。'},{date:'2024.04',title:'AI产品设计工作坊',desc:'联合产品爱好者协会举办，探索AI工具在产品设计中的应用。'}],
+   recruit:{reqs:['有Python基础','对数据与商业有双重兴趣','能按时完成项目任务'],deadline:'2025年9月25日',flow:'提交作品集或简历 → 小组面试 → 项目挑战 → 录取'},
+   testimonials:[{name:'陈同学',meta:'2023级 · 统计学',text:'数科社让我把课堂里学的统计方法真正用起来了。'},{name:'张同学',meta:'2022级 · 经济学',text:'作为文科背景的人，这里完全不排外，非常互补。'}]},
+  {id:3,  name:'机器人工程队',     cat:'学术科技', emoji:'🤖', tags:['机器人','硬件','工程'], freq:'每周2次', members:29, traits:['理性'], interests:['技术','竞赛'], time:'5h+', difficulty:'hard', pressure:'high',
+   desc:'以设计、制造和调试机器人为核心，参加RoboMaster、全国大学生机器人大赛等高规格赛事。',
+   activities:[{date:'2024.07',title:'RoboMaster全国赛',desc:'首次晋级全国赛，获第12名。'},{date:'2024.03',title:'校内工程开放日',desc:'向全校展示参赛机器人。'},{date:'2023.11',title:'嵌入式系统培训',desc:'从STM32到ROS的内部培训。'}],
+   recruit:{reqs:['有C/C++或Python基础','对硬件或机械有兴趣','能接受高强度项目节奏'],deadline:'2025年9月18日',flow:'在线报名 → 技术方向评估 → 实操测试 → 队长面试'},
+   testimonials:[{name:'刘同学',meta:'2022级 · 自动化',text:'机器人队是我大学最值得的投入。看着自己焊的板子驱动机器人动起来，那种成就感无可替代。'}]},
+  {id:4,  name:'天文爱好者协会',   cat:'学术科技', emoji:'🔭', tags:['天文','观测','科普'],   freq:'每月2次', members:67, traits:['内向'], interests:['技术','人文'], time:'1-3h', difficulty:'easy', pressure:'low',
+   desc:'以天文观测与科普为主旨的兴趣型社团，拥有学校天文台使用权限。',
+   activities:[{date:'2024.08',title:'英仙座流星雨观测夜',desc:'80余名成员在郊外举行联合观测。'},{date:'2024.04',title:'日全食直播',desc:'联合校媒进行校园直播，在线观看人数突破2000人次。'},{date:'2024.01',title:'冬季深空摄影工作坊',desc:'学习使用赤道仪与后期处理软件。'}],
+   recruit:{reqs:['热爱星空与宇宙（无需专业背景）','愿意参加夜间观测活动'],deadline:'2025年10月01日',flow:'填写报名表 → 随队观测 → 确认录取'},
+   testimonials:[{name:'周同学',meta:'2023级 · 中文系',text:'作为文科生加入天文协会是最正确的决定。大家就是一起看星星，很治愈。'}]},
+  {id:5,  name:'街舞社',           cat:'文化艺术', emoji:'🎵', tags:['街舞','表演','团队'],   freq:'每周3次', members:84, traits:['外向','感性'], interests:['艺术','运动'], time:'5h+', difficulty:'medium', pressure:'high',
+   desc:'学校最具活力的文艺类社团，涵盖Popping、Locking、Breaking、Hip-hop等多个风格。',
+   activities:[{date:'2024.11',title:'高校街舞联赛冠军',desc:'代表学校参加全省高校街舞联赛，Popping组夺冠。'},{date:'2024.09',title:'迎新晚会主场演出',desc:'承接全校迎新晚会开场演出。'},{date:'2024.06',title:'毕业季公演',desc:'年度最大规模公演，现场观众逾600人。'}],
+   recruit:{reqs:['无需舞蹈基础，热爱即可','能保证每周3次训练出席率'],deadline:'2025年9月22日',flow:'现场体验课 → 基础动作测试 → 导师面谈 → 分组录取'},
+   testimonials:[{name:'林同学',meta:'2023级 · 工商管理',text:'进来之前连节拍都跟不上，现在已经登上了毕业晚会的舞台。'},{name:'吴同学',meta:'2022级 · 设计学',text:'这里不只是学跳舞，是一个家。'}]},
+  {id:6,  name:'摄影协会',         cat:'文化艺术', emoji:'📷', tags:['摄影','创作','美学'],   freq:'每两周1次', members:103, traits:['内向','感性'], interests:['艺术','人文'], time:'1-3h', difficulty:'easy', pressure:'low',
+   desc:'学校人数最多的文艺类社团，活动形式多元，包括外拍、后期教学、展览策划与摄影比赛。',
+   activities:[{date:'2024.10',title:'秋季外拍 · 银杏道',desc:'组织50余名成员进行秋景创作。'},{date:'2024.06',title:'年度摄影展',desc:'在校图书馆举办年度摄影展。'},{date:'2024.03',title:'Lightroom后期工作坊',desc:'系列教学活动，从基础调色到风格塑造。'}],
+   recruit:{reqs:['对摄影有热情（有无相机均可）','愿意参加外拍活动'],deadline:'2025年10月05日',flow:'提交3张摄影作品 → 面谈 → 录取'},
+   testimonials:[{name:'赵同学',meta:'2023级 · 新闻学',text:'摄影协会让我用相机记录了整个大学时光。'}]},
+  {id:7,  name:'戏剧社',           cat:'文化艺术', emoji:'🎭', tags:['戏剧','表演','编剧'],   freq:'每周2次', members:46, traits:['外向','感性'], interests:['艺术'], time:'3-5h', difficulty:'medium', pressure:'medium',
+   desc:'专注于话剧创作与舞台表演的艺术类社团。每年创排原创话剧1-2部。',
+   activities:[{date:'2024.12',title:'原创话剧《候鸟》公演',desc:'历时半年创作排演，共演三场，场场满座。'},{date:'2024.05',title:'全国大学生话剧节',desc:'作品《回声》获"最佳表演奖"。'},{date:'2024.03',title:'即兴戏剧工作坊',desc:'邀请专业戏剧导师开展即兴训练。'}],
+   recruit:{reqs:['有表达欲与创作热情','能按时参加排练'],deadline:'2025年9月28日',flow:'自我介绍视频 → 即兴表演测试 → 导演面谈'},
+   testimonials:[{name:'徐同学',meta:'2021级 · 汉语言文学',text:'戏剧社给了我一个出口。我把自己的故事写进剧本，看着演员演出来，非常感动。'}]},
+  {id:8,  name:'书法篆刻协会',     cat:'文化艺术', emoji:'🖌️', tags:['书法','传统','艺术'],  freq:'每周1次', members:58, traits:['内向'], interests:['艺术','人文'], time:'1-3h', difficulty:'easy', pressure:'low',
+   desc:'传承中华传统书写艺术，活动包括书法临帖、篆刻实践与传统文化讲座。',
+   activities:[{date:'2024.11',title:'省级大学生书法展入选',desc:'5名成员作品入选省级展览。'},{date:'2024.06',title:'毕业季书法义写',desc:'为毕业生义务书写寄语。'},{date:'2024.04',title:'篆刻初级工作坊',desc:'手把手教学，完成第一方印章。'}],
+   recruit:{reqs:['对书法或传统文化有兴趣（零基础欢迎）','愿意静下心来'],deadline:'2025年10月08日',flow:'填写报名表 → 参加体验课 → 录取'},
+   testimonials:[{name:'何同学',meta:'2023级 · 法学',text:'书法课成了我一周中最期待的时光。'}]},
+  {id:9,  name:'羽毛球协会',       cat:'体育竞技', emoji:'🏸', tags:['运动','健康','社交'],   freq:'每周2次', members:120, traits:['外向'], interests:['运动','社交'], time:'3-5h', difficulty:'easy', pressure:'low',
+   desc:'学校规模最大的体育类社团，拥有固定场地使用权。氛围轻松友好。',
+   activities:[{date:'2024.10',title:'秋季校内锦标赛',desc:'参赛人数超160人，历时三周。'},{date:'2024.05',title:'跨校邀请赛',desc:'邀请5所高校共同参与。'},{date:'2024.03',title:'基础技术公开课',desc:'面向零基础新成员开设。'}],
+   recruit:{reqs:['热爱羽毛球运动（任何水平均可）','能按时参加每周例行活动'],deadline:'2025年9月30日',flow:'在线报名 → 免费体验课 → 直接录取'},
+   testimonials:[{name:'孙同学',meta:'2023级 · 电子工程',text:'打羽毛球是我唯一的解压方式。协会的人超好。'}]},
+  {id:10, name:'篮球协会',         cat:'体育竞技', emoji:'🏀', tags:['篮球','竞技','团队'],   freq:'每周3次', members:95, traits:['外向'], interests:['运动','社交'], time:'5h+', difficulty:'hard', pressure:'high',
+   desc:'以篮球运动为核心，兼顾竞技与休闲。参加市级大学生篮球联赛。',
+   activities:[{date:'2024.11',title:'市级大学生篮球联赛',desc:'首次进入半决赛，获第三名。'},{date:'2024.09',title:'开学三对三挑战赛',desc:'邀请全校篮球爱好者参与。'},{date:'2024.06',title:'技术强化训练营',desc:'封闭式三天集训。'}],
+   recruit:{reqs:['热爱篮球，有一定运动基础','能承受高频训练节奏'],deadline:'2025年9月20日',flow:'体能测试 → 技术展示 → 教练面谈 → 分组录取'},
+   testimonials:[{name:'马同学',meta:'2022级 · 体育学',text:'篮球协会教会了我什么是真正的团队。'}]},
+  {id:11, name:'登山攀岩社',       cat:'体育竞技', emoji:'🧗', tags:['登山','户外','挑战'],   freq:'每月2次', members:44, traits:['外向'], interests:['运动'], time:'3-5h', difficulty:'medium', pressure:'medium',
+   desc:'以户外探索和意志力培养为核心理念，定期组织近郊徒步、室内攀岩培训。',
+   activities:[{date:'2024.10',title:'峨眉山秋季登顶',desc:'22名成员完成金顶登顶挑战。'},{date:'2024.07',title:'室内攀岩初级认证',desc:'18人获初级认证。'},{date:'2024.05',title:'青城山徒步日',desc:'半日徒步活动，30余人参加。'}],
+   recruit:{reqs:['身体健康，无心肺疾病禁忌症','对户外运动充满热情'],deadline:'2025年10月01日',flow:'填写健康问卷 → 室内体能评估 → 新人体验活动 → 录取'},
+   testimonials:[{name:'郑同学',meta:'2022级 · 地质学',text:'登上峨眉山顶那一刻，我哭了。登山社给了我突破自己的勇气。'}]},
+  {id:12, name:'瑜伽冥想社',       cat:'体育竞技', emoji:'🧘', tags:['瑜伽','健康','冥想'],   freq:'每周2次', members:79, traits:['内向'], interests:['运动'], time:'1-3h', difficulty:'easy', pressure:'low',
+   desc:'在高压学业环境中，为同学提供身心调节的空间。有专业瑜伽教师带队。',
+   activities:[{date:'2024.10',title:'身心疗愈工作坊',desc:'邀请心理咨询师联合开展专场。'},{date:'2024.06',title:'夏至冥想日',desc:'在校园草坪上举行集体冥想。'},{date:'2024.03',title:'考前减压专场',desc:'期中考试前的减压瑜伽课。'}],
+   recruit:{reqs:['身体健康','零基础完全欢迎','愿意持续练习'],deadline:'2025年10月10日',flow:'填写报名表 → 体验一节课 → 直接录取'},
+   testimonials:[{name:'冯同学',meta:'2023级 · 心理学',text:'焦虑症状在参加冥想社三个月后明显改善。'}]},
+  {id:13, name:'公益支教队',       cat:'公益服务', emoji:'🌱', tags:['公益','教育','成长'],   freq:'每月1次', members:88, traits:['内向','感性'], interests:['公益','人文'], time:'1-3h', difficulty:'easy', pressure:'low',
+   desc:'长期服务于川西农村留守儿童教育，已累计服务8个村镇、1200余名儿童。',
+   activities:[{date:'2024.09',title:'新学期支教启动',desc:'前往X县Y小学送课本和科学启蒙课。'},{date:'2024.07',title:'暑期夏令营',desc:'连续两周密集支教项目。'},{date:'2024.03',title:'年度总结与经验分享',desc:'发布2023年度公益报告。'}],
+   recruit:{reqs:['有爱心与责任感','愿意每月抽出一天参加支教'],deadline:'2025年10月01日',flow:'填写报名表 → 线上培训 → 随队体验支教 → 正式录取'},
+   testimonials:[{name:'黄同学',meta:'2022级 · 教育学',text:'那些孩子眼睛里的光，让我想成为一个更好的老师。'}]},
+  {id:14, name:'环保行动社',       cat:'公益服务', emoji:'♻️', tags:['环保','社区','公益'],   freq:'每月2次', members:61, traits:['感性'], interests:['公益'], time:'1-3h', difficulty:'easy', pressure:'low',
+   desc:'以推动校园和社区可持续发展为使命。与学校后勤部门及多家环保NGO保持合作。',
+   activities:[{date:'2024.09',title:'旧物交换集市',desc:'吸引600余名同学参与。'},{date:'2024.04',title:'地球日清洁行动',desc:'清理垃圾200余公斤。'},{date:'2024.01',title:'校园碳排放研究报告',desc:'历时3个月调研并发布报告。'}],
+   recruit:{reqs:['关注环保议题，认同可持续理念','愿意参与线下活动'],deadline:'2025年10月05日',flow:'填写价值观问卷 → 参加一次活动 → 录取'},
+   testimonials:[{name:'谢同学',meta:'2023级 · 环境工程',text:'每一件小事都觉得有意义。'}]},
+  {id:15, name:'爱心义工团',       cat:'公益服务', emoji:'❤️', tags:['义工','关爱','服务'],   freq:'每月2次', members:130, traits:['感性','外向'], interests:['公益','社交'], time:'1-3h', difficulty:'easy', pressure:'low',
+   desc:'学校规模最大的公益类社团，服务范围包括养老院探访、孤儿院陪伴等。',
+   activities:[{date:'2024.10',title:'重阳节养老院探访',desc:'50名成员分组前往3家养老院。'},{date:'2024.06',title:'儿童节孤儿院活动',desc:'为孤儿院儿童带去手工课。'},{date:'2024.03',title:'无障碍地图志愿绘制',desc:'为校园周边绘制无障碍设施地图。'}],
+   recruit:{reqs:['有爱心，乐于助人','能积极参与线下活动'],deadline:'2025年10月10日',flow:'在线报名 → 直接录取 → 参加岗前培训'},
+   testimonials:[{name:'金同学',meta:'2023级 · 护理学',text:'义工团是让我第一次感受到"被需要"的地方。'}]},
+  {id:16, name:'创业孵化营',       cat:'创业商业', emoji:'🚀', tags:['创业','商业','人脉'],   freq:'每周1次', members:73, traits:['外向'], interests:['商业','社交'], time:'3-5h', difficulty:'medium', pressure:'medium',
+   desc:'为有创业想法的同学提供资源对接、导师辅导与项目孵化支持。',
+   activities:[{date:'2024.11',title:'创业路演季',desc:'10个项目团队面向投资人路演。'},{date:'2024.08',title:'暑期创业集训营',desc:'封闭式五天训练。'},{date:'2024.04',title:'互联网+备赛工作坊',desc:'备赛培训。'}],
+   recruit:{reqs:['有创业想法或对商业感兴趣','愿意主动推进项目'],deadline:'2025年9月25日',flow:'提交项目idea → 委员会评审 → 面试 → 录取'},
+   testimonials:[{name:'曹同学',meta:'2021级 · 工商管理',text:'我在孵化营认识的团队伙伴，现在是我的联合创始人。'}]},
+  {id:17, name:'投资理财研究会',   cat:'创业商业', emoji:'📈', tags:['金融','投资','分析'],   freq:'每周1次', members:55, traits:['理性'], interests:['商业'], time:'1-3h', difficulty:'medium', pressure:'medium',
+   desc:'以研究金融市场、培养投资思维为核心。活动涵盖模拟盘操作、CFA学习小组等。',
+   activities:[{date:'2024.10',title:'模拟盘大赛',desc:'100万虚拟资金，3个月投资周期。'},{date:'2024.07',title:'暑期金融实习分享会',desc:'邀请在顶级机构实习的成员分享经验。'},{date:'2024.04',title:'宏观经济季度研讨',desc:'每季度一次经济研讨。'}],
+   recruit:{reqs:['有基本的数学与逻辑能力','对金融市场有好奇心'],deadline:'2025年9月28日',flow:'笔试 → 案例分析面试 → 录取'},
+   testimonials:[{name:'王同学',meta:'2022级 · 金融学',text:'研究会让我的简历从白纸变成了有含金量的东西。'}]},
+  {id:18, name:'市场营销俱乐部',   cat:'创业商业', emoji:'💡', tags:['营销','品牌','策划'],   freq:'每周1次', members:68, traits:['外向'], interests:['商业','社交'], time:'3-5h', difficulty:'medium', pressure:'medium',
+   desc:'以真实营销项目为载体，培养策略思维与执行能力。',
+   activities:[{date:'2024.10',title:'美妆品牌校园营销项目',desc:'策划并执行校园推广。'},{date:'2024.06',title:'品牌策划大赛',desc:'内部策划比赛。'},{date:'2024.03',title:'新媒体运营工作坊',desc:'拆解各平台内容策略。'}],
+   recruit:{reqs:['对营销与品牌有热情','有创意，善于沟通'],deadline:'2025年09月30日',flow:'提交品牌分析 → 面试 → 录取'},
+   testimonials:[{name:'邓同学',meta:'2022级 · 传播学',text:'这里做的都是真实项目，不是PPT游戏。'}]},
+  {id:19, name:'辩论队',           cat:'人文社科', emoji:'🎤', tags:['辩论','逻辑','表达'],   freq:'每周2次', members:36, traits:['外向','理性'], interests:['人文','竞赛'], time:'3-5h', difficulty:'hard', pressure:'high',
+   desc:'代表学校参加华语辩论赛等高规格赛事。有系统的新人培训体系。',
+   activities:[{date:'2024.11',title:'全国高校辩论邀请赛',desc:'八强战，主辩手获"最佳辩手"提名。'},{date:'2024.09',title:'校内院际辩论赛',desc:'承办校级赛事，16支院队参赛。'},{date:'2024.04',title:'辩题：AI是否应有权利',desc:'内部公开辩论，引发广泛讨论。'}],
+   recruit:{reqs:['逻辑清晰，表达有力','愿意接受高强度训练'],deadline:'2025年09月20日',flow:'即兴陈词 → 一对一考核 → 主教练面试'},
+   testimonials:[{name:'杨同学',meta:'2021级 · 哲学',text:'辩论队让我明白"有力量的表达"和"大声说话"是两回事。'}]},
+  {id:20, name:'读书会',           cat:'人文社科', emoji:'📚', tags:['阅读','写作','思考'],   freq:'每两周1次', members:91, traits:['内向'], interests:['人文'], time:'1-3h', difficulty:'easy', pressure:'low',
+   desc:'每两周共读一本书，强调对话而非演讲，每位成员都有平等的发言空间。',
+   activities:[{date:'2024.10',title:'共读《置身事内》',desc:'围绕中国经济展开深度讨论。'},{date:'2024.07',title:'读书笔记展览',desc:'征集并展出40余份读书笔记。'},{date:'2024.05',title:'作家见面会',desc:'邀请青年作家来校交流。'}],
+   recruit:{reqs:['喜欢阅读与独立思考','愿意提前阅读并参与讨论'],deadline:'2025年10月10日',flow:'填写阅读偏好问卷 → 参加一次读书会 → 录取'},
+   testimonials:[{name:'韩同学',meta:'2023级 · 社会学',text:'读书会是我整个大学里��重要的精神滋养来源。'}]},
+  {id:21, name:'历史文化探索社',   cat:'人文社科', emoji:'🏛️', tags:['历史','文化','田野'],   freq:'每月2次', members:49, traits:['内向'], interests:['人文'], time:'1-3h', difficulty:'easy', pressure:'low',
+   desc:'以田野调查、历史寻访与文化研究为特色。',
+   activities:[{date:'2024.09',title:'成都老街区历史调查',desc:'走访12条老街，完成万字报告。'},{date:'2024.05',title:'三星堆研学之旅',desc:'赴三星堆博物馆专项参观。'},{date:'2024.03',title:'非遗技艺工作坊',desc:'邀请蜀绣传承人开展体验课。'}],
+   recruit:{reqs:['对历史或民俗文化有浓厚兴趣','有独立阅读与思考能力'],deadline:'2025年10月08日',flow:'提交文化短文 → 面谈 → 录取'},
+   testimonials:[{name:'秦同学',meta:'2022级 · 历史学',text:'老街调查是我迄今完成的最有意义的项目。'}]},
+  {id:22, name:'英语演讲协会',     cat:'国际交流', emoji:'🌍', tags:['英语','演讲','国际'],   freq:'每周1次', members:77, traits:['外向'], interests:['人文','社交'], time:'1-3h', difficulty:'medium', pressure:'medium',
+   desc:'专注于英语口语与演讲能力培养，创造纯英语交流环境。',
+   activities:[{date:'2024.11',title:'外研社演讲比赛校级决赛',desc:'1人获校级冠军。'},{date:'2024.06',title:'国际文化之夜',desc:'用英语分享文化体验。'},{date:'2024.03',title:'TED Talk模仿挑战',desc:'模仿经典TED演讲并互相评分。'}],
+   recruit:{reqs:['英语水平四级及以上','愿意开口说话'],deadline:'2025年09月28日',flow:'英语自我介绍 → 小组讨论 → 录取'},
+   testimonials:[{name:'方同学',meta:'2022级 · 英语专业',text:'演讲协会让我的英语从"能看"变成了"能说"。'}]},
+  {id:23, name:'模拟联合国',       cat:'国际交流', emoji:'🇺🇳', tags:['外交','辩论','国际'],  freq:'每周1次', members:42, traits:['外向','理性'], interests:['人文','竞赛'], time:'3-5h', difficulty:'hard', pressure:'high',
+   desc:'以模拟联合国会议为核心形式，培养国际视野与外交沟通能力。',
+   activities:[{date:'2024.12',title:'第12届校级MUN大会',desc:'吸引20所高校200余名代表参会。'},{date:'2024.09',title:'北京MUN邀请赛',desc:'4人获"最佳代表"荣誉。'},{date:'2024.04',title:'国际关系前沿讲座',desc:'邀请外交学院教授主讲。'}],
+   recruit:{reqs:['英语读写流利','关注国际时事'],deadline:'2025年09月22日',flow:'英语笔试 → 英文面试 → 录取'},
+   testimonials:[{name:'薛同学',meta:'2021级 · 国际关系',text:'模联给了我站上真正国际舞台的信心。'}]},
+  {id:24, name:'美食烹饪社',       cat:'生活兴趣', emoji:'🍳', tags:['烹饪','美食','社交'],   freq:'每两周1次', members:112, traits:['感性','外向'], interests:['社交'], time:'1-3h', difficulty:'easy', pressure:'low',
+   desc:'最让人快乐的社团之一。有专属烹饪空间与全套设备。',
+   activities:[{date:'2024.10',title:'川菜入门班',desc:'20名成员人手一个灶台。'},{date:'2024.08',title:'烘焙挑战赛',desc:'自由命题烘焙比赛。'},{date:'2024.06',title:'毕业季告别宴',desc:'亲手制作告别晚宴。'}],
+   recruit:{reqs:['喜欢吃（真的最重要的条件）','愿意动手做'],deadline:'2025年10月15日',flow:'填写报名表 → 参加体验活动 → 直接录取'},
+   testimonials:[{name:'程同学',meta:'2023级 · 化学',text:'烹饪社真的治愈了我的homesick。'}]},
+  {id:25, name:'表演社', cat:'文化艺术', emoji:'🎬', tags:['表演','影视','创作'], freq:'每周2次', members:54, traits:['外向','感性'], interests:['艺术','社交'], time:'3-5h', difficulty:'medium', pressure:'medium',
+   desc:'专注于影视表演与短片创作的综合类艺术社团。',
+   activities:[{date:'2024.11',title:'短片《候车》入围影视节',desc:'入围全国高校影视节。'},{date:'2024.07',title:'暑期表演工作坊',desc:'专业影视导演执教。'},{date:'2024.04',title:'即兴喜剧之夜',desc:'即兴创作小品。'}],
+   recruit:{reqs:['有表演热情','愿意参与全流程创作'],deadline:'2025年09月25日',flow:'提交表演视频 → 线下试镜 → 导演面谈 → 录取'},
+   testimonials:[{name:'潘同学',meta:'2022级 · 传播学',text:'从一个上台就抖的人，到能在200人面前完整走完一场戏。'},{name:'钟同学',meta:'2023级 · 汉语言',text:'这里不只是表演，是一个完整的创作生态。'}]},
+  {id:26, name:'拉丁舞社', cat:'文化艺术', emoji:'💃', tags:['拉丁舞','表演','优雅'], freq:'每周3次', members:67, traits:['外向','感性'], interests:['艺术','运动','社交'], time:'5h+', difficulty:'medium', pressure:'high',
+   desc:'涵盖桑巴、恰恰、伦巴等五大拉丁舞种，有专业外聘教师。',
+   activities:[{date:'2024.11',title:'省级体育舞蹈锦标赛',desc:'恰恰组获第二名。'},{date:'2024.09',title:'开学晚会拉丁专场',desc:'8个节目。'},{date:'2024.05',title:'拉丁舞公开体验课',desc:'吸引120余名同学参与。'}],
+   recruit:{reqs:['无需舞蹈基础','能保证每周三次训练出勤'],deadline:'2025年09月20日',flow:'现场体验课 → 形体测评 → 教练面谈 → 分组录取'},
+   testimonials:[{name:'蒋同学',meta:'2022级 · 外语学院',text:'拉丁舞让我变了一个人。不只是体型，是整个气质和自信心。'}]},
+  {id:27, name:'排球社', cat:'体育竞技', emoji:'🏐', tags:['排球','团队','竞技'], freq:'每周2次', members:88, traits:['外向'], interests:['运动','社交'], time:'3-5h', difficulty:'easy', pressure:'medium',
+   desc:'设竞技组与休闲组，适合不同水平的同学。团队凝聚力强。',
+   activities:[{date:'2024.10',title:'秋季校内联赛',desc:'16支队伍参赛。'},{date:'2024.05',title:'市级大学生排球联赛',desc:'女队获第三名。'},{date:'2024.03',title:'零基础入门训练营',desc:'四周基础培训。'}],
+   recruit:{reqs:['热爱排球（任何水平均可）','能按时参加例行活动'],deadline:'2025年09月28日',flow:'在线报名 → 免费体验训练 → 直接录取'},
+   testimonials:[{name:'沈同学',meta:'2023级 · 护理学',text:'排球社让我认识了大学里最好的朋友。'}]},
+  {id:28, name:'数学社', cat:'学术科技', emoji:'&sum;', tags:['数学','竞赛','研究'], freq:'每周1次', members:41, traits:['理性'], interests:['技术','竞赛'], time:'3-5h', difficulty:'hard', pressure:'medium',
+   desc:'面向数学爱好者的学术型社团，活动涵盖竞赛培训与趣味数学研讨。',
+   activities:[{date:'2024.11',title:'全国数学竞赛备考营',desc:'15名成员获奖，2人获全国一等奖。'},{date:'2024.06',title:'数学之美公开讲座',desc:'邀请教授主讲拓扑学。'},{date:'2024.03',title:'趣味数学游戏之夜',desc:'魔方挑战、数独竞速。'}],
+   recruit:{reqs:['热爱数学','能独立思考并乐于分享'],deadline:'2025年09月22日',flow:'数学基础笔试 → 面谈 → 录取'},
+   testimonials:[{name:'卢同学',meta:'2022级 · 数学系',text:'数学社让我找到了同类。'}]},
+  {id:29, name:'相声社', cat:'文化艺术', emoji:'🎙️', tags:['相声','传统','喜剧'], freq:'每周1次', members:32, traits:['外向'], interests:['艺术','人文'], time:'1-3h', difficulty:'easy', pressure:'low',
+   desc:'传承中国传统曲艺文化，专注于相声、小品与脱口秀。',
+   activities:[{date:'2024.12',title:'岁末相声专场',desc:'八个节目，返场三次。'},{date:'2024.06',title:'全国大学生曲艺展演',desc:'获最佳创作奖。'},{date:'2024.04',title:'传统贯口集训',desc:'邀请专业演员执教。'}],
+   recruit:{reqs:['口齿清晰，普通话标准','有幽默感'],deadline:'2025年10月01日',flow:'说一段自选段子 → 面谈 → 录取'},
+   testimonials:[{name:'苗同学',meta:'2022级 · 中文系',text:'加入相声社之前我是个社恐。现在能在两百人面前抖包袱。'}]},
+  {id:30, name:'说唱社', cat:'文化艺术', emoji:'🎤', tags:['说唱','Hip-hop','原创'], freq:'每周2次', members:48, traits:['外向','感性'], interests:['艺术','社交'], time:'3-5h', difficulty:'medium', pressure:'medium',
+   desc:'以说唱音乐创作与表演为核心，有专属录音棚使用权限。',
+   activities:[{date:'2024.11',title:'校园说唱大赛总决赛',desc:'决赛门票提前三天售罄。'},{date:'2024.08',title:'暑期创作营',desc:'十五天密集创作。'},{date:'2024.05',title:'Freestyle Battle之夜',desc:'即兴对战。'}],
+   recruit:{reqs:['热爱说唱音乐，有基本节奏感','有原创欲望'],deadline:'2025年09月25日',flow:'提交16-bar录音 → 面谈 → 录取'},
+   testimonials:[{name:'袁同学',meta:'2022级 · 音乐学',text:'说唱社的录音棚是我整个大学最常待的地方。'}]},
+  {id:31, name:'跆拳道社', cat:'体育竞技', emoji:'🥋', tags:['跆拳道','武术','自我防卫'], freq:'每周3次', members:76, traits:['外向','理性'], interests:['运动','竞赛'], time:'5h+', difficulty:'hard', pressure:'high',
+   desc:'以跆拳道训练为核心，由黑带三段以上教练执教。',
+   activities:[{date:'2024.10',title:'省级跆拳道锦标赛',desc:'获金牌3枚、银牌4枚。'},{date:'2024.06',title:'段位晋级考试',desc:'3人晋升黑带一段。'},{date:'2024.03',title:'自我防卫公开课',desc:'面向全校女生开放。'}],
+   recruit:{reqs:['身体健康','零基础欢迎'],deadline:'2025年09月22日',flow:'体能基础测试 → 教练面谈 → 分班录取'},
+   testimonials:[{name:'丁同学',meta:'2023级 · 法学',text:'练了一年跆拳道，整个人的精神状态都不一样了。'}]},
+  {id:32, name:'天文社', cat:'学术科技', emoji:'🌌', tags:['天文','宇宙','星空'], freq:'每月2次', members:59, traits:['内向'], interests:['技术','人文'], time:'1-3h', difficulty:'medium', pressure:'low',
+   desc:'更侧重天体物理知识研究与学术交流。',
+   activities:[{date:'2024.09',title:'系外行星数据分析',desc:'基于NASA开放数据集完成分析。'},{date:'2024.07',title:'天文摄影深度工作坊',desc:'赤道仪调试与后期处理。'},{date:'2024.04',title:'《三体》物理真实性研讨',desc:'深度讨论天体力学概念。'}],
+   recruit:{reqs:['对天体物理有学术兴趣','有基础物理或数学背景'],deadline:'2025年10月05日',flow:'填写研究兴趣问卷 → 面谈 → 录取'},
+   testimonials:[{name:'廖同学',meta:'2022级 · 物理系',text:'天文社是让我坚定读研方向的地方。'}]},
+  {id:33, name:'文学社', cat:'人文社科', emoji:'✍️', tags:['写作','文学','创作'], freq:'每两周1次', members:85, traits:['内向'], interests:['人文','艺术'], time:'1-3h', difficulty:'easy', pressure:'low',
+   desc:'以文学创作与评论为核心，出版社团文学刊物《一粟》。',
+   activities:[{date:'2024.11',title:'《一粟》第12期发布',desc:'汇集30余篇原创作品。'},{date:'2024.06',title:'青年作家进校园',desc:'邀请小说家来校对谈。'},{date:'2024.03',title:'春季写作马拉松',desc:'48小时不间断写作挑战。'}],
+   recruit:{reqs:['热爱文学，有持续创作的习惯','愿意接受编辑反馈'],deadline:'2025年10月08日',flow:'提交原创作品 → 编委评审 → 面谈 → 录取'},
+   testimonials:[{name:'唐同学',meta:'2021级 · 中文系',text:'《一粟》上发表的第一篇文章，是我至今最珍视的东西之一。'}]},
+  {id:34, name:'无人机社', cat:'学术科技', emoji:'🚁', tags:['无人机','航拍','工程'], freq:'每周1次', members:38, traits:['理性'], interests:['技术','竞赛'], time:'3-5h', difficulty:'medium', pressure:'medium',
+   desc:'涵盖飞控编程、航拍摄影与无人机竞速赛三个方向。',
+   activities:[{date:'2024.10',title:'全国无人机竞速联赛',desc:'入围16强，获最佳工程设计奖。'},{date:'2024.07',title:'航拍技术工作坊',desc:'系统学习航拍。'},{date:'2024.04',title:'飞控编程入门',desc:'从PID调参到自主悬停。'}],
+   recruit:{reqs:['有基础编程能力','对飞行器与硬件感兴趣'],deadline:'2025年09月25日',flow:'在线报名 → 技术评估 → 操控测试 → 录取'},
+   testimonials:[{name:'熊同学',meta:'2022级 · 航空航天',text:'自己调好PID让无人机稳定悬停那一刻，真的会上瘾。'}]},
+  {id:35, name:'滑板社', cat:'体育竞技', emoji:'🛹', tags:['滑板','街头','潮流'], freq:'每周2次', members:43, traits:['外向'], interests:['运动','社交'], time:'3-5h', difficulty:'easy', pressure:'low',
+   desc:'最年轻、最有街头文化气质的体育类社团。拥有校内专属滑板场地。',
+   activities:[{date:'2024.09',title:'校园滑板开放日',desc:'吸引150人到场围观体验。'},{date:'2024.07',title:'城市滑板游',desc:'15名成员骑板探访城市地标。'},{date:'2024.05',title:'街式技巧挑战赛',desc:'内部技巧比赛。'}],
+   recruit:{reqs:['热爱滑板文化（零基础欢迎）','愿意坚持练习'],deadline:'2025年10月01日',flow:'填写报名表 → 新人体验课 → 直接录取'},
+   testimonials:[{name:'石同学',meta:'2023级 · 设计学',text:'滑板社让我找到了一种完全属于自己的表达方式。'}]},
+  {id:36, name:'物理社', cat:'学术科技', emoji:'⚛️', tags:['物理','实验','竞赛'], freq:'每周1次', members:36, traits:['理性'], interests:['技术','竞赛'], time:'3-5h', difficulty:'hard', pressure:'medium',
+   desc:'以物理竞赛培训与趣味实验为核心。强调动手验证与理论推导并重。',
+   activities:[{date:'2024.11',title:'全国大学生物理竞赛',desc:'6名成员获全国奖项。'},{date:'2024.06',title:'趣味物理实验展',desc:'20余个趣味实验装置。'},{date:'2024.03',title:'量子力学入门研讨',desc:'深入浅出的量子力学系列。'}],
+   recruit:{reqs:['热爱物理，有扎实基础','善于独立思考'],deadline:'2025年09月22日',flow:'物理基础笔试 → 面谈 → 录取'},
+   testimonials:[{name:'魏同学',meta:'2022级 · 物理系',text:'课堂上的公式在这里变成了真实的实验现象。'}]},
+  {id:37, name:'生物社', cat:'学术科技', emoji:'🧬', tags:['生物','实验','科研'], freq:'每周1次', members:44, traits:['理性','内向'], interests:['技术'], time:'3-5h', difficulty:'medium', pressure:'medium',
+   desc:'以生命科学探索与实验操作为核心的学术型社团。',
+   activities:[{date:'2024.10',title:'全国生命科学竞赛',desc:'4名成员获三等奖以上。'},{date:'2024.07',title:'DNA提取与PCR实验',desc:'亲手完成分子生物学实验。'},{date:'2024.04',title:'科研论文阅读小组',desc:'每周共读一篇顶刊文献。'}],
+   recruit:{reqs:['热爱生命科学','有耐心，适应实验室节奏'],deadline:'2025年09月28日',flow:'填写兴趣问卷 → 实验基础测试 → 面谈 → 录取'},
+   testimonials:[{name:'于同学',meta:'2022级 · 生物学',text:'大二就在老师的实验室跟组，机会就是通过社团推荐拿到的。'}]},
+];
+
+const categories = ['全部', ...new Set(clubs.map(c => c.cat))];
+
+// Demo user accounts
+const DEMO_ACCOUNTS = {
+  '2025030012345': { name:'张三', school:'计算机学院', grade:'2025级本科生', pwd:'123456' },
+  '2025030067890': { name:'李思', school:'商学院', grade:'2025级本科生', pwd:'123456' },
+  '2025020011111': { name:'王芳', school:'文学院', grade:'2025级本科生', pwd:'123456' },
+};
+
+// ══════════════════════════════════════════
+// STATE (with localStorage persistence)
+// ══════════════════════════════════════════
+let currentUser = JSON.parse(localStorage.getItem('clubUser') || 'null');
+let favorites = JSON.parse(localStorage.getItem('clubFavs') || '[]');
+let applications = JSON.parse(localStorage.getItem('clubApps') || '[]');
+let activeCat = '全部';
+let searchQuery = '';
+let matchState = { ans:{}, catPref:[], interests:[], step:0, applied:{}, resultCache:null, showAll:false };
+let compareList = [];
+
+function saveState(){
+  localStorage.setItem('clubUser', JSON.stringify(currentUser));
+  localStorage.setItem('clubFavs', JSON.stringify(favorites));
+  localStorage.setItem('clubApps', JSON.stringify(applications));
+}
+
+// Simulate application status progression
+function simulateAppStatus(){
+  applications.forEach(app => {
+    if(!app.statusUpdated){
+      const elapsed = Date.now() - (app.timestamp || Date.now());
+      if(elapsed > 10000 && app.status === 'pending'){
+        app.status = 'review';
+        app.statusUpdated = true;
+      }
+    }
+  });
+  saveState();
+}
+setInterval(simulateAppStatus, 5000);
+
+// ══════════════════════════════════════════
+// SLIDESHOW
+// ══════════════════════════════════════════
+let sIdx = 0;
+const slides = document.querySelectorAll('.slide');
+const dotsEl = document.getElementById('dots');
+slides.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.onclick = () => goSlide(i);
+  dotsEl.appendChild(d);
+});
+function goSlide(n){
+  slides[sIdx].classList.remove('active'); dotsEl.children[sIdx].classList.remove('active');
+  sIdx = n; slides[sIdx].classList.add('active'); dotsEl.children[sIdx].classList.add('active');
+}
+setInterval(() => goSlide((sIdx + 1) % slides.length), 3500);
+
+function syncHeroHeight(){
+  const hl = document.querySelector('.hero-left');
+  const ss = document.querySelector('.slideshow');
+  if(hl && ss) ss.style.height = Math.round(hl.offsetHeight * 0.48) + 'px';
+}
+window.addEventListener('load', syncHeroHeight);
+window.addEventListener('resize', syncHeroHeight);
+
+// ══════════════════════════════════════════
+// TICKER
+// ══════════════════════════════════════════
+const depts = ['学术科技部','文化艺术部','体育竞技部','公益服务部','创业商业部','人文社科部','国际交流部','生活兴趣部'];
+document.getElementById('ticker').innerHTML = [...depts,...depts].map(d => `<span class="ticker-item">${d}</span>`).join('');
+
+// ══════════════════════════════════════════
+// SEARCH
+// ══════════════════════════════════════════
+function handleSearch(){
+  searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+  const clearBtn = document.getElementById('searchClear');
+  clearBtn.classList.toggle('visible', searchQuery.length > 0);
+  buildGrid();
+  updateClubCount();
+}
+function clearSearch(){
+  document.getElementById('searchInput').value = '';
+  searchQuery = '';
+  document.getElementById('searchClear').classList.remove('visible');
+  buildGrid();
+  updateClubCount();
+}
+
+// ══════════════════════════════════════════
+// CLUBS GRID
+// ══════════════════════════════════════════
+function updateClubCount(){
+  const visible = getVisibleClubs().length;
+  document.getElementById('clubCount').textContent = `${visible} 个社团 · 寻找你的归属`;
+}
+function getVisibleClubs(){
+  return clubs.filter(c => {
+    if(activeCat !== '全部' && c.cat !== activeCat) return false;
+    if(searchQuery){
+      const q = searchQuery;
+      return c.name.toLowerCase().includes(q) ||
+        c.cat.toLowerCase().includes(q) ||
+        c.tags.some(t => t.toLowerCase().includes(q)) ||
+        c.desc.toLowerCase().includes(q);
+    }
+    return true;
+  });
+}
+function buildFilter(){
+  const f = document.getElementById('catFilter');
+  f.innerHTML = categories.map(c =>
+    `<button class="cat-btn ${c === activeCat ? 'active' : ''}" onclick="filterCat('${c}')">${c}</button>`
+  ).join('');
+  updateClubCount();
+}
+function buildGrid(){
+  const g = document.getElementById('clubsGrid');
+  const visible = getVisibleClubs();
+  if(visible.length === 0){
+    g.innerHTML = '<div class="no-results">没有找到匹配的社团，试试其他关键词？</div>';
+    return;
+  }
+  g.innerHTML = visible.map(c =>
+    `<div class="club-card" onclick="openDetail(${c.id})">
+      <div class="club-card-bg">${c.emoji}</div>
+      <div class="club-card-overlay"></div>
+      <div class="club-card-info">
+        <div class="club-card-type">${c.cat}</div>
+        <div class="club-card-bottom">
+          <div class="club-card-name">${c.name}</div>
+          <div class="club-card-freq">${c.freq} · ${c.tags.slice(0,2).join(' / ')}</div>
+        </div>
+      </div>
+      <div class="club-card-static"><div class="club-static-name">${c.name}</div></div>
+    </div>`
+  ).join('');
+}
+function filterCat(cat){ activeCat = cat; buildFilter(); buildGrid(); }
+buildFilter(); buildGrid();
+
+// ══════════════════════════════════════════
+// NAV AUTH
+// ══════════════════════════════════════════
+function renderNav(){
+  const area = document.getElementById('navAuthArea');
+  if(currentUser){
+    area.innerHTML = `<div class="nav-user" onclick="goProfile()">
+      <div class="nav-avatar">${currentUser.name[0]}</div>
+      <div class="nav-username">${currentUser.name}</div>
+    </div>`;
+  } else {
+    area.innerHTML = `<button class="nav-login-btn" onclick="openLogin()">登录 / 我的</button>`;
+  }
+}
+renderNav();
+
+// ══════════════════════════════════════════
+// PAGES
+// ══════════════════════════════════════════
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  // Update nav active state
+  document.getElementById('navHome').classList.toggle('active-link', id === 'homePage');
+  document.getElementById('navEvents').classList.toggle('active-link', id === 'eventsPage');
+  window.scrollTo(0, 0);
+}
+function goHome(){ showPage('homePage'); syncHeroHeight(); }
+
+// ══════════════════════════════════════════
+// EVENTS PAGE
+// ══════════════════════════════════════════
+function goEvents(){
+  buildEventsPage();
+  showPage('eventsPage');
+}
+function buildEventsPage(){
+  // Deadlines sorted by date
+  const deadlines = clubs.map(c => ({...c, dl: c.recruit.deadline}))
+    .sort((a,b) => a.dl.localeCompare(b.dl));
+
+  document.getElementById('deadlineGrid').innerHTML = deadlines.map(c =>
+    `<div class="deadline-card" onclick="openDetail(${c.id})">
+      <div class="deadline-card-date">${c.emoji} ${c.recruit.deadline}</div>
+      <div class="deadline-card-name">${c.name}</div>
+      <div class="deadline-card-cat">${c.cat}</div>
+    </div>`
+  ).join('');
+
+  // Recent activities from all clubs
+  const allActivities = [];
+  clubs.forEach(c => {
+    c.activities.forEach(a => {
+      allActivities.push({...a, clubName: c.name, clubId: c.id, emoji: c.emoji, cat: c.cat});
+    });
+  });
+  allActivities.sort((a,b) => b.date.localeCompare(a.date));
+
+  document.getElementById('timelineList').innerHTML = allActivities.slice(0, 20).map(a =>
+    `<div class="timeline-item" onclick="openDetail(${a.clubId})">
+      <div class="timeline-date">${a.date}</div>
+      <div class="timeline-info">
+        <div class="timeline-club">${a.emoji} ${a.clubName}</div>
+        <div class="timeline-desc">${a.title}</div>
+      </div>
+      <div class="timeline-status ended">已结束</div>
+    </div>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════
+// CLUB DETAIL
+// ══════════════════════════════════════════
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+function openDetail(id){
+  const c = clubs.find(x => x.id === id);
+  const isFaved = favorites.includes(id);
+  const isApplied = applications.find(a => a.id === id);
+  document.getElementById('detailContent').innerHTML = `
+    <div class="detail-hero">
+      <div class="detail-left">
+        <div class="detail-emoji-wrap">${c.emoji}</div>
+        <div class="detail-cat">${c.cat}</div>
+        <div class="detail-name">${escapeHtml(c.name)}</div>
+        <div class="detail-meta-row">
+          <div class="detail-meta-item"><div class="detail-meta-label">成员人数</div><div class="detail-meta-val">${c.members} 人</div></div>
+          <div class="detail-meta-item"><div class="detail-meta-label">活动频率</div><div class="detail-meta-val">${c.freq}</div></div>
+          <div class="detail-meta-item"><div class="detail-meta-label">时间投入</div><div class="detail-meta-val">${c.time} / 周</div></div>
+          <div class="detail-meta-item"><div class="detail-meta-label">入门难度</div><div class="detail-meta-val">${{easy:'友好',medium:'适中',hard:'较高'}[c.difficulty]}</div></div>
+        </div>
+        <div class="detail-desc">${escapeHtml(c.desc)}</div>
+      </div>
+      <div class="detail-right">
+        <div class="detail-cta-box">
+          <div class="detail-cta-label">2025 秋季招新</div>
+          <div class="detail-cta-deadline">截止报名：${c.recruit.deadline}</div>
+          <div class="detail-cta-sub">流程：${c.recruit.flow}</div>
+          <button class="detail-apply-btn ${isApplied ? 'applied' : ''}" onclick="applyClub(${c.id})" id="applyBtn${c.id}">
+            ${isApplied ? '已提交申请' : '申请加入'}
+          </button>
+          <button class="detail-fav-btn ${isFaved ? 'faved' : ''}" onclick="toggleFav(${c.id})" id="favBtn${c.id}">
+            ${isFaved ? '★ 已收藏' : '☆ 收藏社团'}
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">历史活动</div>
+      <div class="activities-grid">
+        ${c.activities.map(a => `
+        <div class="activity-card">
+          <div class="activity-img">${c.emoji}</div>
+          <div class="activity-date">${a.date}</div>
+          <div class="activity-title">${escapeHtml(a.title)}</div>
+          <div class="activity-desc">${escapeHtml(a.desc)}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">招新信息</div>
+      <div class="recruit-info-grid">
+        <div>
+          <div class="ri-label">招新要求</div>
+          <div class="ri-content">${c.recruit.reqs.map(r => `<div style="margin-bottom:8px;padding-left:12px;border-left:1px solid var(--border);">${escapeHtml(r)}</div>`).join('')}</div>
+        </div>
+        <div>
+          <div class="ri-label">面试流程</div>
+          <div class="ri-content">${c.recruit.flow.split('→').map((s,i) => `
+            <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;">
+              <div style="width:20px;height:20px;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mid);flex-shrink:0;">${i+1}</div>
+              <div style="font-size:13px;color:var(--mid);">${escapeHtml(s.trim())}</div>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">学长 / 学姐留言</div>
+      <div class="testimonials">
+        ${c.testimonials.map(t => `
+        <div class="testimonial">
+          <div class="test-avatar">${t.name[0]}</div>
+          <div>
+            <div class="test-name">${escapeHtml(t.name)}</div>
+            <div class="test-meta">${escapeHtml(t.meta)}</div>
+            <div class="test-text">"${escapeHtml(t.text)}"</div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  showPage('detailPage');
+}
+
+function applyClub(id){
+  if(!currentUser){ openLogin(); return; }
+  if(!applications.find(a => a.id === id)){
+    const c = clubs.find(x => x.id === id);
+    applications.push({
+      id, name:c.name, cat:c.cat, emoji:c.emoji,
+      date: new Date().toLocaleDateString('zh-CN'),
+      status:'pending', timestamp: Date.now()
+    });
+    // Also mark in matchState so modal stays synced
+    matchState.applied[id] = true;
+    saveState();
+  }
+  const btn = document.getElementById('applyBtn' + id);
+  if(btn){ btn.textContent = '已提交申请'; btn.classList.add('applied'); }
+}
+
+function toggleFav(id){
+  if(!currentUser){ openLogin(); return; }
+  const idx = favorites.indexOf(id);
+  if(idx > -1) favorites.splice(idx, 1); else favorites.push(id);
+  saveState();
+  const btn = document.getElementById('favBtn' + id);
+  const isFaved = favorites.includes(id);
+  if(btn){ btn.textContent = isFaved ? '★ 已收藏' : '☆ 收藏社团'; btn.className = 'detail-fav-btn' + (isFaved ? ' faved' : ''); }
+}
+
+// ══════════════════════════════════════════
+// COMPARE
+// ══════════════════════════════════════════
+function openCompare(ids){
+  const selected = ids.map(id => clubs.find(c => c.id === id)).filter(Boolean);
+  if(selected.length < 2) return;
+  const rows = [
+    ['类别', c => c.cat],
+    ['成员人数', c => c.members + ' 人'],
+    ['活动频率', c => c.freq],
+    ['时间投入', c => c.time + ' / 周'],
+    ['入门难度', c => ({easy:'友好',medium:'适中',hard:'较高'})[c.difficulty]],
+    ['压力强度', c => ({low:'轻松',medium:'适中',high:'较高'})[c.pressure]],
+    ['标签', c => c.tags.join(' / ')],
+    ['截止日期', c => c.recruit.deadline],
+  ];
+  let h = `<table class="compare-table"><thead><tr><th></th>${selected.map(c => `<th>${c.emoji} ${escapeHtml(c.name)}</th>`).join('')}</tr></thead><tbody>`;
+  rows.forEach(([label, fn]) => {
+    h += `<tr><td>${label}</td>${selected.map(c => `<td>${fn(c)}</td>`).join('')}</tr>`;
+  });
+  h += '</tbody></table>';
+  document.getElementById('compareBody').innerHTML = h;
+  document.getElementById('compareOverlay').classList.add('open');
+}
+function closeCompare(){ document.getElementById('compareOverlay').classList.remove('open'); }
+function compareOverlayClick(e){ if(e.target === document.getElementById('compareOverlay')) closeCompare(); }
+
+// ══════════════════════════════════════════
+// PROFILE
+// ══════════════════════════════════════════
+function goProfile(){
+  if(!currentUser){ openLogin(); return; }
+  simulateAppStatus();
+  const favClubs = clubs.filter(c => favorites.includes(c.id));
+  document.getElementById('profileContent').innerHTML = `
+    <div class="profile-hero">
+      <div class="profile-hero-inner">
+        <div class="profile-big-avatar">${currentUser.name[0]}</div>
+        <div class="profile-info">
+          <div class="profile-name">${escapeHtml(currentUser.name)}</div>
+          <div class="profile-sub">已登录 · ${escapeHtml(currentUser.id)}</div>
+        </div>
+      </div>
+    </div>
+    <div class="profile-body">
+      <div class="profile-section">
+        <div class="profile-section-title">个人信息</div>
+        <div class="info-grid">
+          <div class="info-block"><div class="info-label">学号</div><div class="info-value">${escapeHtml(currentUser.id)}</div></div>
+          <div class="info-block"><div class="info-label">学院</div><div class="info-value">${escapeHtml(currentUser.school)}</div></div>
+          <div class="info-block"><div class="info-label">年级</div><div class="info-value">${escapeHtml(currentUser.grade)}</div></div>
+        </div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">我收藏的社团 ${favClubs.length > 1 ? `<span style="font-size:12px;color:var(--light);margin-left:1rem;cursor:pointer;border-bottom:1px dashed var(--light);" onclick="openCompare([${favClubs.map(c=>c.id).join(',')}])">对比收藏社团</span>` : ''}</div>
+        ${favClubs.length === 0
+          ? '<div class="empty-state">暂无收藏 · 浏览社团并点击收藏</div>'
+          : `<div class="fav-list">${favClubs.map(c => `
+          <div class="fav-item" onclick="openDetail(${c.id})">
+            <div class="fav-left">
+              <div class="fav-emoji">${c.emoji}</div>
+              <div><div class="fav-name">${escapeHtml(c.name)}</div><div class="fav-cat">${c.cat}</div></div>
+            </div>
+            <div class="fav-remove" onclick="event.stopPropagation();removeFav(${c.id})">移除</div>
+          </div>`).join('')}</div>`}
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">申请进度</div>
+        ${applications.length === 0
+          ? '<div class="empty-state">暂无申请记录 · 前往社团页面提交申请</div>'
+          : `<div class="apps-list">${applications.map(a => `
+          <div class="app-item">
+            <div>
+              <div class="app-name">${a.emoji} ${escapeHtml(a.name)}</div>
+              <div class="app-date">提交于 ${a.date}</div>
+            </div>
+            <div class="app-status ${a.status}">${{pending:'审核中',review:'面试邀请',passed:'已录取'}[a.status]}</div>
+          </div>`).join('')}</div>`}
+      </div>
+      <div class="profile-section">
+        <button class="m-again" onclick="currentUser=null;saveState();renderNav();goHome();" style="max-width:200px;">退出登录</button>
+      </div>
+    </div>`;
+  showPage('profilePage');
+}
+
+function removeFav(id){
+  const idx = favorites.indexOf(id);
+  if(idx > -1) favorites.splice(idx, 1);
+  saveState();
+  goProfile();
+}
+
+// ══════════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════════
+function openLogin(){ document.getElementById('loginOverlay').classList.add('open'); }
+function closeLogin(){ document.getElementById('loginOverlay').classList.remove('open'); document.getElementById('loginErr').style.display='none'; }
+function loginOverlayClick(e){ if(e.target === document.getElementById('loginOverlay')) closeLogin(); }
+
+function doLogin(){
+  const id = document.getElementById('loginId').value.trim();
+  const pwd = document.getElementById('loginPwd').value.trim();
+  const errEl = document.getElementById('loginErr');
+
+  if(!id || !pwd){
+    errEl.textContent = '请输入学号和密码'; errEl.style.display = 'block'; return;
+  }
+  const account = DEMO_ACCOUNTS[id];
+  if(!account || account.pwd !== pwd){
+    errEl.textContent = '学号或密码错误，请使用下方演示账号登录'; errEl.style.display = 'block'; return;
+  }
+  currentUser = { name: account.name, id: id, school: account.school, grade: account.grade };
+  saveState();
+  closeLogin();
+  renderNav();
+}
+
+// ══════════════════════════════════════════
+// HELP / FOOTER
+// ══════════════════════════════════════════
+function openHelp(){ document.getElementById('helpOverlay').classList.add('open'); }
+function closeHelp(){ document.getElementById('helpOverlay').classList.remove('open'); }
+function helpOverlayClick(e){ if(e.target === document.getElementById('helpOverlay')) closeHelp(); }
+function copyEmail(){
+  navigator.clipboard.writeText('clubs@meituan-u.edu.cn').then(() => {
+    showToast('邮箱已复制：clubs@meituan-u.edu.cn');
+  }).catch(() => {
+    showToast('邮箱：clubs@meituan-u.edu.cn');
+  });
+}
+function showToast(msg){
+  const t = document.createElement('div');
+  t.className = 'm-share-toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+
+// ══════════════════════════════════════════
+// ASSESSMENT — 7 questions, data-driven matching
+// ══════════════════════════════════════════
+
+const QS = [
+  { key:'grade', type:'single', label:'基本信息',
+    q:'你目前是哪个年级？', hint:'不同年级的同学对社团的需求不同',
+    opts:[['大一','刚刚入学，想多探索'],['大二','希望深耕某个方向'],['大三','注重实用价值与简历'],['大四及以上','寻找放松与收获并重的出口'],['研究生','偏向学术或专业导向']] },
+  { key:'catPref', type:'multi2', label:'兴趣偏好',
+    q:'你最感兴趣的社团类别是？', hint:'最多选 2 个',
+    opts:['学术科技','文化艺术','体育竞技','公益服务','创业商业','人文社科','国际交流','生活兴趣'] },
+  { key:'interests', type:'multi', label:'兴趣方向',
+    q:'哪些具体方向最吸引你？', hint:'可多选，至少选 1 个',
+    opts:['编程/算法','数据/AI','工程/硬件','数学/物理/生物','舞蹈/表演','音乐/说唱/曲艺','摄影/影视/文学','书法/传统文化','球类运动','武术/格斗','户外/极限运动','健康/冥想','公益/支教','环保','创业/商业','投资/金融','辩论/演讲','阅读/写作','国际事务','烹饪/生活'] },
+  { key:'goal', type:'single', label:'加入目标',
+    q:'你加入社团最主要的目的是什么？', hint:'选最接近你真实想法的一项',
+    opts:[['兴趣培养','纯粹享受这件事，不在意结果'],['竞赛/荣誉','希望参赛获奖，有明确成绩目标'],['技能提升','想系统学习，提升某项能力'],['人脉社交','认识更多朋友，拓展圈子'],['简历背景','为升学或求职积累课外经历'],['压力释放','学业之余放松身心，找到平衡']] },
+  { key:'time', type:'single', label:'时间投入',
+    q:'每周你能稳定投入多少时间？', hint:'请结合课业压力如实估算',
+    opts:[['1-3h','1—3 小时，轻度参与'],['3-5h','3—5 小时，适度参与'],['5h+','5 小时以上，深度参与']] },
+  { key:'traits', type:'multi2', label:'性格特征',
+    q:'以下哪些描述接近你的性格？', hint:'最多选 2 个，可以组合',
+    opts:['外向','内向','理性','感性'] },
+  { key:'pressure', type:'single', label:'投入强度',
+    q:'你能接受多大的社团压力与强度？', hint:'',
+    opts:[['轻松为主','不想有太多硬性任务和压力'],['适中挑战','偶尔紧张，整体可控'],['高强度OK','喜欢有挑战性的环境']] },
+];
+
+const TOTAL_Q = QS.length;
+
+function openModal(){
+  matchState = { ans:{}, catPref:[], interests:[], traits:[], step:0, applied:{}, resultCache:null, showAll:false };
+  document.getElementById('modalOverlay').classList.add('open');
+  renderModal();
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+function overlayClick(e){ if(e.target === document.getElementById('modalOverlay')) closeModal(); }
+
+// ═══ DATA-DRIVEN MATCHING ENGINE ═══
+// No hardcoded club IDs - everything derived from club data properties
+function computeMatch(){
+  const a = matchState.ans;
+  const userTraits = matchState.traits || [];
+
+  // Map user interest selections to abstract interest tags
+  const interestMap = {
+    '编程/算法':['技术','竞赛'], '数据/AI':['技术','商业'], '工程/硬件':['技术','竞赛'],
+    '数学/物理/生物':['技术','竞赛'], '舞蹈/表演':['艺术','运动'], '音乐/说唱/曲艺':['艺术'],
+    '摄影/影视/文学':['艺术','人文'], '书法/传统文化':['艺术','人文'], '球类运动':['运动','社交'],
+    '武术/格斗':['运动','竞赛'], '户外/极限运动':['运动'], '健康/冥想':['运动'],
+    '公益/支教':['公益','人文'], '环保':['公益'], '创业/商业':['商业','社交'],
+    '投资/金融':['商业'], '辩论/演讲':['人文','竞赛'], '阅读/写作':['人文','艺术'],
+    '国际事务':['人文','社交'], '烹饪/生活':['社交']
+  };
+
+  // Build user's abstract interest vector
+  const userInterestSet = new Set();
+  (matchState.interests || []).forEach(i => {
+    (interestMap[i] || []).forEach(t => userInterestSet.add(t));
+  });
+
+  return clubs.map(c => {
+    let score = 30;
+    const reasons = [];
+
+    // 1. Category preference (strong signal, +20)
+    const cp = matchState.catPref || [];
+    if(cp.includes(c.cat)){
+      score += 20;
+      reasons.push(`你对「${c.cat}」类别感兴趣`);
+    }
+
+    // 2. Interest vector overlap (data-driven, up to +25)
+    const clubInterests = new Set(c.interests || []);
+    let interestOverlap = 0;
+    userInterestSet.forEach(ui => { if(clubInterests.has(ui)) interestOverlap++; });
+    const interestScore = Math.min(25, interestOverlap * 8);
+    score += interestScore;
+    if(interestOverlap > 0) reasons.push(`兴趣方向高度匹配（${interestOverlap} 个维度重合）`);
+
+    // 3. Trait similarity (data-driven via c.traits, up to +16)
+    const clubTraits = c.traits || [];
+    let traitOverlap = 0;
+    userTraits.forEach(ut => { if(clubTraits.includes(ut)) traitOverlap++; });
+    score += traitOverlap * 8;
+    if(traitOverlap > 0) reasons.push(`性格特质与社团氛围契合`);
+
+    // 4. Time commitment match (data-driven via c.time)
+    const userTime = a.time;
+    if(userTime && c.time === userTime){
+      score += 8;
+      reasons.push(`时间投入要求恰好匹配你的预期`);
+    }
+    if(userTime === '1-3h' && c.time === '5h+') score -= 10;
+    if(userTime === '5h+' && c.time === '1-3h') score -= 5;
+
+    // 5. Pressure tolerance (data-driven via c.pressure)
+    const userPressure = a.pressure;
+    if(userPressure === '高强度OK' && c.pressure === 'high'){ score += 6; reasons.push('你能承受高强度挑战'); }
+    if(userPressure === '轻松为主' && c.pressure === 'low'){ score += 6; reasons.push('活动节奏轻松，不会给主业造成压力'); }
+    if(userPressure === '轻松为主' && c.pressure === 'high') score -= 8;
+    if(userPressure === '适中挑战' && c.pressure === 'medium') score += 4;
+
+    // 6. Goal alignment (data-driven via c properties)
+    const goal = a.goal;
+    if(goal === '兴趣培养' && c.difficulty === 'easy' && c.pressure === 'low') score += 6;
+    if(goal === '竞赛/荣誉' && c.interests.includes('竞赛')){ score += 10; reasons.push('社团有丰富的竞赛经历与荣誉'); }
+    if(goal === '技能提升' && c.difficulty !== 'easy') score += 5;
+    if(goal === '人脉社交' && c.members > 60){ score += 6; reasons.push(`社团有 ${c.members} 名成员，社交机会丰富`); }
+    if(goal === '人脉社交' && c.interests.includes('社交')) score += 5;
+    if(goal === '简历背景' && (c.interests.includes('竞赛') || c.interests.includes('商业'))){ score += 8; reasons.push('社团经历对升学和求职有明确加分'); }
+    if(goal === '压力释放' && c.pressure === 'low' && c.time !== '5h+'){ score += 8; reasons.push('轻松的社团氛围帮助你找到身心平衡'); }
+
+    // 7. Grade signal
+    if(a.grade === '大一') score += 2;
+    if(a.grade === '大三' && ['简历背景','技能提升'].includes(goal)) score += 4;
+
+    // Clamp score
+    score = Math.max(10, Math.min(98, score));
+
+    // Build reason text
+    const reasonText = reasons.length > 0
+      ? reasons.slice(0, 3).join('，') + '。'
+      : `${c.name}与你的偏好整体契合。`;
+
+    return { ...c, score, reason: reasonText };
+  }).sort((a,b) => b.score - a.score);
+}
+
+// ═══ RENDER ENGINE ═══
+function renderModal(){
+  const body = document.getElementById('modalBody');
+  const MATCH_STEP = TOTAL_Q;
+  const RESULT_STEP = TOTAL_Q + 1;
+  const ms = matchState;
+
+  if(ms.step < TOTAL_Q){
+    const q = QS[ms.step];
+    const segs = Array.from({length: TOTAL_Q}, (_, i) =>
+      `<div class="m-ps ${i < ms.step ? 'done' : i === ms.step ? 'active' : ''}"></div>`
+    ).join('');
+
+    let h = `<div class="m-progress">${segs}</div>`;
+    h += `<div class="m-label">${q.label} · ${ms.step + 1} / ${TOTAL_Q}</div>`;
+    h += `<div class="m-q">${q.q}</div>`;
+    if(q.hint) h += `<div class="m-hint">${q.hint}</div>`;
+
+    if(q.type === 'single'){
+      h += `<div class="m-opts">`;
+      q.opts.forEach(([v, s]) => {
+        const sel = ms.ans[q.key] === v ? 'sel' : '';
+        h += `<div class="m-opt ${sel}" onclick="mSelectSingle('${q.key}','${v}')">
+          <div class="m-radio"></div>
+          <div><div class="m-opt-text">${v}</div>${s ? `<div class="m-opt-sub">${s}</div>` : ''}</div>
+        </div>`;
+      });
+      h += `</div>`;
+      const canNext = !!ms.ans[q.key];
+      const isLast = ms.step === TOTAL_Q - 1;
+      h += `<button class="m-btn" onclick="${isLast ? 'mStartMatch()' : 'mNext()'}" ${!canNext ? 'disabled' : ''}>${isLast ? '开始匹配' : '继续'}</button>`;
+    }
+    else if(q.type === 'multi'){
+      const arr = ms[q.key] || [];
+      h += `<div class="m-tags">`;
+      q.opts.forEach(o => {
+        h += `<div class="m-tag ${arr.includes(o) ? 'sel' : ''}" onclick="mToggleMulti('${q.key}','${o}')">${o}</div>`;
+      });
+      h += `</div>`;
+      const canNext = arr.length > 0;
+      const isLast = ms.step === TOTAL_Q - 1;
+      h += `<button class="m-btn" onclick="${isLast ? 'mStartMatch()' : 'mNext()'}" ${!canNext ? 'disabled' : ''}>${isLast ? '开始匹配' : '继续'}</button>`;
+    }
+    else if(q.type === 'multi2'){
+      const arr = ms[q.key] || [];
+      h += `<div class="m-opts">`;
+      q.opts.forEach(o => {
+        const sel = arr.includes(o);
+        const disabled = !sel && arr.length >= 2;
+        h += `<div class="m-opt ${sel ? 'sel' : ''}" style="${disabled ? 'opacity:0.4;cursor:not-allowed;' : ''}" onclick="${disabled ? '' : `mToggleMax2('${q.key}','${o}')`}">
+          <div class="m-check"></div>
+          <div class="m-opt-text">${o}</div>
+        </div>`;
+      });
+      h += `</div>`;
+      if(arr.length >= 2) h += `<div style="font-size:11px;color:var(--light);margin-bottom:1rem;letter-spacing:0.5px;">已选 ${arr.length} / 2，再次点击可取消</div>`;
+      const canNext = arr.length > 0;
+      const isLast = ms.step === TOTAL_Q - 1;
+      h += `<button class="m-btn" onclick="${isLast ? 'mStartMatch()' : 'mNext()'}" ${!canNext ? 'disabled' : ''}>${isLast ? '开始匹配' : '继续'}</button>`;
+    }
+
+    if(ms.step > 0){
+      h += `<button class="m-again" onclick="mBack()">&larr; 上一题</button>`;
+    }
+    body.innerHTML = h;
+
+  } else if(ms.step === MATCH_STEP){
+    body.innerHTML = `<div class="m-matching">
+      <div class="m-ring">&#9671;</div>
+      <div class="m-mt">正在为你深度分析...</div>
+      <div class="m-ms">综合 ${TOTAL_Q} 项维度与 ${clubs.length} 个社团<br>基于向量相似度进行匹配</div>
+      <div class="m-dots"><span></span><span></span><span></span></div>
+    </div>`;
+    setTimeout(() => { ms.step = RESULT_STEP; ms.resultCache = computeMatch(); renderModal(); }, 2200);
+
+  } else if(ms.step === RESULT_STEP){
+    const allResults = ms.resultCache || computeMatch();
+    const showCount = ms.showAll ? 10 : 5;
+    const res = allResults.slice(0, showCount);
+
+    let h = `<div class="m-rh">
+      <div class="m-rt">为你推荐 ${res.length} 个社团</div>
+      <div class="m-rs">基于 ${TOTAL_Q} 项维度 · ${clubs.length} 个社团向量匹配分析</div>
+    </div>`;
+
+    res.forEach((r, i) => {
+      const isApplied = ms.applied[r.id] || applications.find(a => a.id === r.id);
+      h += `<div class="m-rc ${i === 0 ? 'top' : ''}">
+        <div class="m-rch">
+          <div class="m-rci">${r.emoji}</div>
+          <div><div class="m-rcn">${escapeHtml(r.name)}</div><div class="m-rcm">${r.cat} · ${r.freq} · ${r.members}人</div></div>
+          ${i === 0 ? '<div class="m-rcb">最佳匹配</div>' : ''}
+        </div>
+        <div class="m-mrow">
+          <div class="m-ml">匹配度</div>
+          <div class="m-trk"><div class="m-fill" data-pct="${r.score}"></div></div>
+          <div class="m-pct">${r.score}%</div>
+        </div>
+        <div class="m-reason">${escapeHtml(r.reason)}</div>
+        <div class="m-ctags">${r.tags.map(t => `<span class="m-ctag">${t}</span>`).join('')}</div>
+        <button class="m-apply ${isApplied ? 'applied' : ''}" onclick="mApply(${r.id},this)">${isApplied ? '已报名' : '立即报名'}</button>
+        <button class="m-view-detail" onclick="closeModal();openDetail(${r.id})">查看详情</button>
+      </div>`;
+    });
+
+    if(!ms.showAll && allResults.length > 5){
+      h += `<button class="m-show-more" onclick="matchState.showAll=true;renderModal();setTimeout(triggerFills,80);">查看更多推荐（共 ${Math.min(10, allResults.length)} 个）</button>`;
+    }
+
+    // Compare top results
+    if(res.length >= 2){
+      h += `<button class="m-show-more" onclick="closeModal();openCompare([${res.slice(0,3).map(r=>r.id).join(',')}])">对比前 ${Math.min(3, res.length)} 个社团</button>`;
+    }
+
+    h += `<button class="m-share" onclick="shareResult()">分享我的匹配结果</button>`;
+    h += `<button class="m-again" onclick="openModal()">重新测评</button>`;
+    body.innerHTML = h;
+    setTimeout(triggerFills, 80);
+  }
+}
+
+function triggerFills(){
+  document.querySelectorAll('.m-fill').forEach(el => {
+    const p = el.getAttribute('data-pct');
+    if(p) setTimeout(() => el.style.width = p + '%', 60);
+  });
+}
+
+function mSelectSingle(k, v){ matchState.ans[k] = v; renderModal(); }
+function mToggleMulti(k, v){
+  if(!matchState[k]) matchState[k] = [];
+  const i = matchState[k].indexOf(v);
+  if(i > -1) matchState[k].splice(i, 1); else matchState[k].push(v);
+  renderModal();
+}
+function mToggleMax2(k, v){
+  if(!matchState[k]) matchState[k] = [];
+  const i = matchState[k].indexOf(v);
+  if(i > -1) matchState[k].splice(i, 1);
+  else if(matchState[k].length < 2) matchState[k].push(v);
+  renderModal();
+}
+function mNext(){ matchState.step++; renderModal(); }
+function mBack(){ if(matchState.step > 0){ matchState.step--; renderModal(); } }
+function mStartMatch(){ matchState.step = TOTAL_Q; renderModal(); }
+
+function mApply(id, btn){
+  if(!currentUser){ closeModal(); openLogin(); return; }
+  if(!applications.find(a => a.id === id)){
+    const c = clubs.find(x => x.id === id);
+    applications.push({
+      id, name:c.name, cat:c.cat, emoji:c.emoji,
+      date: new Date().toLocaleDateString('zh-CN'),
+      status:'pending', timestamp: Date.now()
+    });
+    saveState();
+  }
+  matchState.applied[id] = true;
+  btn.className = 'm-apply applied';
+  btn.textContent = '已报名';
+}
+
+function shareResult(){
+  const res = matchState.resultCache;
+  if(!res || res.length === 0) return;
+  const text = `我在美团大学社团智能匹配平台的测评结果：\n最佳匹配：${res[0].name}（${res[0].score}%）\n${res.length > 1 ? `第二推荐：${res[1].name}（${res[1].score}%）\n` : ''}快来测测你适合什么社团！`;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('匹配结果已复制到剪贴板，快去分享吧！');
+  }).catch(() => {
+    showToast('分享文案：' + res[0].name + '（' + res[0].score + '%）');
+  });
+}
+</script>
+</body>
+</html>
